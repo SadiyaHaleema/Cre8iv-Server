@@ -200,8 +200,9 @@ async function processData(responses) {
           console.log(`pageinfo with pageId ${post_id} already exists. Skipping.`);
         } else {
           const newpost = new post({
-            instaPageId: instapgId,
             postid: post_id,
+            instaPageId: instapgId,
+      
             captionText: caption,
             mediaurl: media_url,
             timestamp: timestamp,
