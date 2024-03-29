@@ -1,7 +1,7 @@
 // Importing required modules
 const graph = require('fbgraph');
 const { spawn } = require('child_process');
-const {pageinfo }= require('../models/pageInfo');
+const { pageinfo } = require('../models/pageInfo');
 // const {fbuserinfo} = require('../models/fbuserinfo')
 const post = require('../models/post');
 const mongoose = require('mongoose');
@@ -14,7 +14,7 @@ const CLIENT_SECRET = '3d3274e3174916feafaee66fd84d4e95';
 const REDIRECT_URI = 'https://localhost:3001/fbtoken';
 
 let token, no_Objects;
-let fbuser_id,fbuser_name; 
+let fbuser_id, fbuser_name;
 
 //const pageTokens = [];
 const instapageIds = [];
@@ -59,96 +59,181 @@ const getFbToken = async (req, res) => {
   );
 };
 
+//___________________________________________________________________________________________________________
+// const getUserFbPages = async (req, res) => {
+//   let graph = require('fbgraph');
+//   graph.get(
+//     `me/accounts?fields=name,id,access_token,instagram_business_account{id,username,biography},category&access_token=${token}`,
+//     //17841403823915540/insights/?metric=follower_count,reach,impressions&period=day&since2021-01-11&until=2021-01-18    -----> To get Insights of the Insta Account
+//     //17841424820010573/media?fields=username,caption,media_url,timestamp    ----> This is the main Data We have to fetch
 
+//     async (err, resp) => {
+//       if (err) {
+//         res.status(404).json({
+//           message: err.message || 'Error in getting user facebook pages.',
+//         });
+//         return;
+//       }
+//       res.json({ data: resp.data });
 
+//       //console.log("Accounts API",resp)
 
+//       no_Objects = resp.data.length;
+//       // Loop through each object in resp.data
+//       for (let i = 0; i < no_Objects; i++) {
+//         //const pageToken = resp.data[i].access_token;
+//         //const fbpg_Id = resp.data[i].id;
+//         //const fbpg_name = resp.data[i].name;
+//         const instapgId = resp.data[i].instagram_business_account.id;
+//         const category = resp.data[i].category;
+//         const username = resp.data[i].instagram_business_account.username;
+//         const biography = resp.data[i].instagram_business_account.biography;
 
+//         // Check if the pageinfo already exists in MongoDB
+//         const pageInfoExists = await pageinfo.findOne({ pageId: instapgId });
+
+//         if (pageInfoExists) {
+//           console.log(
+//             `pageinfo with pageId ${instapgId} already exists. Skipping.`
+//           );
+//         } else {
+//           // Save pageinfo to MongoDB
+//           const newpageinfo = new pageinfo({
+//             pageId: instapgId,
+//             fbuserid: fbuser_id,
+//             fbusername: fbuser_name,
+//             category,
+//             username,
+//             biography,
+//             keywords: null,
+//             // Add other pageinfo fields
+//           });
+
+//           try {
+//             await newpageinfo.save();
+//             console.log('pageinfo saved to MongoDB:', newpageinfo);
+//           } catch (error) {
+//             console.error('Error saving pageinfo to MongoDB:', error.message);
+//           }
+//         }
+//         // Store values in arrays
+
+//         instapageIds.push(instapgId);
+//         categories.push(category);
+//         usenames.push(username);
+//         biographies.push(biography);
+//       }
+
+//       //console.log('Page Tokens:', pageTokens);
+//       //console.log('Page IDs:', pageIds);
+
+//       // page_token = resp.data[1].access_token;
+//       //page_id = resp.data[1].id;
+//     }
+//   );
+// };
+//___________________________________________________________________________________________________________
 
 const getUserFbPages = async (req, res) => {
-  //await getFbUserDetails();
-    let graph = require('fbgraph');
-  // const userAccessToken = req.headers.authorization;
-  /* if (!userAccessToken) {
-    res.status(401).json({
-      message: 'Unauthorized: Access token not provided.',
-    });
-    return;
-  } */
+  // Require the necessary module
+  let graph = require('fbgraph');
 
+  // Make the first API call to get user details
   graph.get(
-    `me/accounts?fields=name,id,access_token,instagram_business_account{id,username,biography},category&access_token=${token}`,
-    //17841403823915540/insights/?metric=follower_count,reach,impressions&period=day&since2021-01-11&until=2021-01-18    -----> To get Insights of the Insta Account
-    //17841424820010573/media?fields=username,caption,media_url,timestamp    ----> This is the main Data We have to fetch
-
-    async (err, resp) => {
+    `me?fields=name,id&access_token=${token}`,
+    async (err, userResp) => {
       if (err) {
-         res.status(404).json({
-          message: err.message || 'Error in getting user facebook pages.',
+        res.status(404).json({
+          message: err.message || 'Error in getting user details.',
         });
         return;
       }
-    res.json({ data: resp.data });
 
-    //console.log("Accounts API",resp)
-      
-      no_Objects = resp.data.length;
-      // Loop through each object in resp.data
-      for (let i = 0; i < no_Objects; i++) {
-        //const pageToken = resp.data[i].access_token;
-        //const fbpg_Id = resp.data[i].id;
-        //const fbpg_name = resp.data[i].name;
-        const instapgId = resp.data[i].instagram_business_account.id;
-        const category = resp.data[i].category;
-        const username = resp.data[i].instagram_business_account.username;
-        const biography = resp.data[i].instagram_business_account.biography;
+      // Handle the response from the first API call
+      console.log('User details:', userResp);
 
+      // Now make the second API call to get user's Facebook pages
+      graph.get(
+        `me/accounts?fields=name,id,access_token,instagram_business_account{id,username,biography},category&access_token=${token}`,
+        async (err, resp) => {
+          if (err) {
+            res.status(404).json({
+              message: err.message || 'Error in getting user facebook pages.',
+            });
+            return;
+          }
 
-          // Check if the pageinfo already exists in MongoDB
-        const pageInfoExists = await pageinfo.findOne({ pageId: instapgId });
+          // Handle the response from the second API call
+          console.log('User Facebook pages:', resp);
 
-        if (pageInfoExists) {
-          console.log(`pageinfo with pageId ${instapgId} already exists. Skipping.`);
-        } else {
-          // Save pageinfo to MongoDB
-          const newpageinfo = new pageinfo({
-            pageId: instapgId,
-            fbuserid:fbuser_id,
-            fbusername:fbuser_name,
-            category,
-            username,
-            biography,
-            keywords:null
-            // Add other pageinfo fields
+          // Send the response back to the client
+          // very important to send data to frontend
+          res.json({ data: resp.data });
+
+          no_Objects = resp.data.length;
+          // Loop through each object in resp.data
+
+          // Process page data
+          const pageData = resp.data;
+          pageData.forEach(async (page) => {
+            const instapgId = page.instagram_business_account.id;
+            const category = page.category;
+            const insta_username = page.instagram_business_account.username;
+            const biography = page.instagram_business_account.biography;
+
+            // Check if the pageinfo already exists in MongoDB
+            //console.log("User Response",userResp.id)
+            const pageInfoExists = await pageinfo.findOne({
+              pageId: instapgId,
+              userId: userResp.id,
+            });
+            console.log('-------------User Response', userResp);
+
+            if (pageInfoExists) {
+              console.log(
+                `pageinfo with pageId ${instapgId} already exists. Skipping.`
+              );
+            } else {
+              // Save pageinfo to MongoDB
+              const newpageinfo = new pageinfo({
+                pageId: instapgId,
+                userId: userResp.id, // Assuming userResp contains user details
+                user_name: userResp.name, // Assuming userResp contains user details
+                category,
+                insta_username: insta_username,
+                biography,
+                keywords: null,
+                // Add other pageinfo fields
+              });
+
+              try {
+                await newpageinfo.save();
+                console.log('pageinfo saved to MongoDB:', newpageinfo);
+              } catch (error) {
+                console.error(
+                  'Error saving pageinfo to MongoDB:',
+                  error.message
+                );
+              }
+            }
+
+            // Store values in arrays
+
+            instapageIds.push(instapgId);
+            categories.push(category);
+            usenames.push(insta_username);
+            biographies.push(biography);
           });
 
-          try {
-            await newpageinfo.save();
-            console.log('pageinfo saved to MongoDB:', newpageinfo);
-          } catch (error) {
-            console.error('Error saving pageinfo to MongoDB:', error.message);
-          }
-      
+          console.log('---------------->>>> Instapageids:', instapageIds);
         }
-        // Store values in arrays
-
-        instapageIds.push(instapgId);
-        categories.push(category);
-        usenames.push(username);
-        biographies.push(biography);
-      }
-
-      //console.log('Page Tokens:', pageTokens);
-      //console.log('Page IDs:', pageIds);
-
-      // page_token = resp.data[1].access_token;
-      //page_id = resp.data[1].id;
+      );
     }
   );
 };
 
 const getPgData = async (req, res) => {
   try {
-   
     for (let i = 0; i < no_Objects; i++) {
       const instapgId = instapageIds[i];
       const category = categories[i];
@@ -156,7 +241,7 @@ const getPgData = async (req, res) => {
 
       try {
         const response = await getGraphData(instapgId, token);
-        console.log("Data:response from graph Data ", response.data);
+        console.log('Data:response from graph Data ', response.data);
         responses.push({ instapgId, category, biography, data: response });
       } catch (err) {
         console.log(`Error in fb getpgdata api for Page ID ${instapgId}:`, err);
@@ -172,13 +257,11 @@ const getPgData = async (req, res) => {
     console.log('Processing completed.');
   } catch (error) {
     console.error('Error in getPgData:', error);
-    
   }
 };
 
-
 async function processData(responses) {
-  console.log("Inside Process Data responses :", responses);
+  console.log('Inside Process Data responses :', responses);
   try {
     for (const item of responses) {
       const dataArray = item.data.data;
@@ -197,12 +280,14 @@ async function processData(responses) {
         const postinfo = await post.findOne({ postid: post_id });
 
         if (postinfo) {
-          console.log(`pageinfo with pageId ${post_id} already exists. Skipping.`);
+          console.log(
+            `pageinfo with pageId ${post_id} already exists. Skipping.`
+          );
         } else {
           const newpost = new post({
             postid: post_id,
             instaPageId: instapgId,
-      
+
             captionText: caption,
             mediaurl: media_url,
             timestamp: timestamp,
@@ -227,14 +312,12 @@ async function processData(responses) {
   }
 }
 
-
-
 //Function to make the graph.get call and return a Promise
 function getGraphData(instapagId, token) {
   return new Promise((resolve, reject) => {
     let graph = require('fbgraph');
-    //Use Post Method 
-        //`${instapagId}/media?fields=caption,media_url{"https://dejhdjejdijk"}`
+    //Use Post Method
+    //`${instapagId}/media?fields=caption,media_url{"https://dejhdjejdijk"}`
 
     graph.get(
       `${instapagId}/media?fields=username,caption,media_url,timestamp&access_token=${token}`,
@@ -249,7 +332,7 @@ function getGraphData(instapagId, token) {
   });
 }
 
-let pythonScriptOutput = ''; 
+let pythonScriptOutput = '';
 
 async function extractkeywords() {
   return new Promise((resolve, reject) => {
@@ -278,24 +361,35 @@ async function extractkeywords() {
           const parsedOutput = JSON.parse(output);
           const pageKey = Object.keys(parsedOutput)[0];
 
-          const client = await MongoClient.connect('mongodb://localhost:27017', {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-          });
+          const client = await MongoClient.connect(
+            'mongodb://localhost:27017',
+            {
+              useNewUrlParser: true,
+              useUnifiedTopology: true,
+            }
+          );
 
           const db = client.db('cre8iv');
           const collection = db.collection('pageinfos');
 
-          const existingDocument = await collection.findOne({ pageId: pageKey });
+          const existingDocument = await collection.findOne({
+            pageId: pageKey,
+          });
 
           if (existingDocument) {
             if (!existingDocument.keywords) {
-              await collection.updateOne({ pageId: pageKey }, { $set: { keywords: parsedOutput[pageKey] } });
+              await collection.updateOne(
+                { pageId: pageKey },
+                { $set: { keywords: parsedOutput[pageKey] } }
+              );
             } else {
               console.log(`Keywords already exist for pageId: ${pageKey}`);
             }
           } else {
-            await collection.insertOne({ pageId: pageKey, keywords: parsedOutput[pageKey] });
+            await collection.insertOne({
+              pageId: pageKey,
+              keywords: parsedOutput[pageKey],
+            });
           }
 
           resolve();
@@ -309,8 +403,5 @@ async function extractkeywords() {
     });
   });
 }
-
-
-
 
 module.exports = { getFacebookLoginUrl, getFbToken, getUserFbPages, getPgData };
