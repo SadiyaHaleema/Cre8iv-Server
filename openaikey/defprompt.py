@@ -21,23 +21,23 @@ data = collection.find_one({"pageId":"17841424820010573"})
 prompt_msg = f"Create a captivating caption for a brand in the '{data['category']}' category, known for {data['biography']}, presents an image with keywords: {data['keywords']}. Craft a compelling caption for an image which contains these objects:{data['imgObj']}  and this text list {data['imgText']} ."
 
 #Call OpenAI GPT-3 API
-response = openai_client.chat.completions.create(
-    model="gpt-3.5-turbo",
-    messages=[
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": prompt_msg},
-    ],
-    max_tokens=50
-)
+# response = openai_client.chat.completions.create(
+#     model="gpt-3.5-turbo",
+#     messages=[
+#         {"role": "system", "content": "You are a helpful assistant."},
+#         {"role": "user", "content": prompt_msg},
+#     ],
+#     max_tokens=50
+# )
 
 #print("---------Response----------\n",response)
 # Extract generated caption
 #generated_caption = response['choices'][0]['message']['content'].strip()
-generated_caption= response.choices[0].message.content
+#generated_caption= response.choices[0].message.content
 # Print or use the generated caption#
-#hardcode = "Unlock endless opportunities with GDSC - NUST! Join us for a glimpse into a world of innovative projects, corporate insights, and cutting-edge workshops. Your journey to success starts here. #GDSCNUST #GreatThingsToCome"
-#print(json.dumps(hardcode))
-print(json.dumps(generated_caption))
+hardcode = "Unlock endless opportunities with GDSC - NUST! Join us for a glimpse into a world of innovative projects, corporate insights, and cutting-edge workshops. Your journey to success starts here. #GDSCNUST #GreatThingsToCome"
+print(json.dumps(hardcode))
+#print(json.dumps(generated_caption))
 # Extract generated caption
 
 

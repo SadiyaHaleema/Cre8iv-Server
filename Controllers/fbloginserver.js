@@ -89,7 +89,7 @@ const getUserFbPages = async (req, res) => {
       }
     res.json({ data: resp.data });
 
-    console.log("Accounts API",resp)
+    //console.log("Accounts API",resp)
       
       no_Objects = resp.data.length;
       // Loop through each object in resp.data
@@ -147,81 +147,85 @@ const getUserFbPages = async (req, res) => {
 };
 
 const getPgData = async (req, res) => {
-  for (let i = 0; i < no_Objects; i++) {
-    //const pageToken = pageTokens[i]; // Access page token from the array
-    const instapgId = instapageIds[i];
-    const category = categories[i];
-    const biography = biographies[i];
+  try {
+   
+    for (let i = 0; i < no_Objects; i++) {
+      const instapgId = instapageIds[i];
+      const category = categories[i];
+      const biography = biographies[i];
 
-    try {
-      const response = await getGraphData(instapgId, token);
-
-      responses.push({ instapgId, category, biography, data: response });
-    } catch (err) {
-      console.log(`Error in fb getpgdata api for Page ID ${instapgId}:`, err);
+      try {
+        const response = await getGraphData(instapgId, token);
+        console.log("Data:response from graph Data ", response.data);
+        responses.push({ instapgId, category, biography, data: response });
+      } catch (err) {
+        console.log(`Error in fb getpgdata api for Page ID ${instapgId}:`, err);
+      }
     }
+
+    // Send the accumulated responses as a single response
+    res.json(responses);
+    console.log('Responses from graphapi:', responses);
+
+    // Call processData after all responses have been processed
+    await processData(responses);
+    console.log('Processing completed.');
+  } catch (error) {
+    console.error('Error in getPgData:', error);
+    
   }
-
-  // Send the accumulated responses as a single response
-  res.json(responses);
-  //console.log('Responses from graphapi: -----', responses);
-
-  processData()
-    .then(() => {
-      console.log('Processing completed.');
-    })
-    .catch((error) => {
-      console.error('Error during processing:', error);
-    });
 };
 
-async function processData() {
-  for (const item of responses) {
-    const dataArray = item.data.data;
 
-    for (const dataItem of dataArray) {
-      const category = item.category;
-      const biography = item.biography;
-      const instapgId = item.instapgId;
-      const username = dataItem.username;
-      const caption = dataItem.caption;
-      const media_url = dataItem.media_url;
-      const timestamp = dataItem.timestamp;
-      const post_id = dataItem.id;
+async function processData(responses) {
+  console.log("Inside Process Data responses :", responses);
+  try {
+    for (const item of responses) {
+      const dataArray = item.data.data;
 
+      for (const dataItem of dataArray) {
+        const category = item.category;
+        const biography = item.biography;
+        const instapgId = item.instapgId;
+        const username = dataItem.username;
+        const caption = dataItem.caption;
+        const media_url = dataItem.media_url;
+        const timestamp = dataItem.timestamp;
+        const post_id = dataItem.id;
 
-
-      // Save Captions to MongoDB
-      const postinfo = await post.findOne({ postid: post_id });
-
-      
+        // Save Captions to MongoDB
+        const postinfo = await post.findOne({ postid: post_id });
 
         if (postinfo) {
           console.log(`pageinfo with pageId ${post_id} already exists. Skipping.`);
         } else {
-        const newpost = new post({
-          instaPageId: instapgId,
-          postid:post_id,
-          captionText : caption,
-          mediaurl:media_url,
-          timestamp: timestamp,
+          const newpost = new post({
+            instaPageId: instapgId,
+            postid: post_id,
+            captionText: caption,
+            mediaurl: media_url,
+            timestamp: timestamp,
+            // Add other Caption fields
+          });
 
-
-          // Add other Caption fields
-        });
-
-        try {
-          await newpost.save();
-          console.log('Caption saved to MongoDB:', newpost);
-        } catch (error) {
-          console.error('Error saving Caption to MongoDB:', error.message);
+          try {
+            await newpost.save();
+            console.log('Caption saved to MongoDB:', newpost);
+          } catch (error) {
+            console.error('Error saving Caption to MongoDB:', error.message);
+          }
         }
       }
     }
-  }
 
-  await extractkeywords();
+    await extractkeywords(); // Wait for extractKeywords to complete
+    console.log('Keywords extraction completed.');
+  } catch (error) {
+    console.error('Error in processData:', error);
+    // Handle error appropriately
+  }
 }
+
 
 
 //Function to make the graph.get call and return a Promise
@@ -250,68 +254,58 @@ async function extractkeywords() {
   return new Promise((resolve, reject) => {
     const pythonProcess = spawn(
       'python',
-      [
-        './scripts/keywordextraction.py',
-      ],
+      ['./scripts/keywordextraction.py'],
       {}
     );
-   
-    let output ;
-    pythonProcess.stdout.on('data', (data) => {
-      output = data.toString();
-      console.log(`Python Script --------> Output: ${data}`);
 
-      // console.log(`Python Script Output: ${data}`);
-    
+    let output = '';
+    pythonProcess.stdout.on('data', (data) => {
+      output += data.toString();
+      console.log(`Python Script Output: ${data}`);
     });
 
     pythonProcess.stderr.on('data', (data) => {
+      // Log non-critical errors or warnings
       console.error(`Error from Python Script: ${data}`);
-      reject(data);
     });
 
     pythonProcess.on('close', async (code) => {
       console.log(`Python Script exited with code ${code}`);
 
-      try {
-        const parsedOutput = JSON.parse(output);
+      if (code === 0) {
+        try {
+          const parsedOutput = JSON.parse(output);
+          const pageKey = Object.keys(parsedOutput)[0];
 
-        // Assuming the dictionary key is stored in the variable 'page'
-        const pageKey = Object.keys(parsedOutput)[0];
-        console.log('-------->Page Key',pageKey);    
-        const client = await MongoClient.connect('mongodb://localhost:27017', {
-          useNewUrlParser: true,
-          useUnifiedTopology: true,
-        });
-        const db = client.db('cre8iv');
-       
-        const collection = db.collection('pageinfos');
+          const client = await MongoClient.connect('mongodb://localhost:27017', {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+          });
 
-        // Search for the document with the key
-        const existingDocument = await collection.findOne({ pageId: pageKey });
+          const db = client.db('cre8iv');
+          const collection = db.collection('pageinfos');
 
-        // Update or insert the document with the key and keywords
-        if (existingDocument) {
-          if (!existingDocument.keywords) {
-        
-          await collection.updateOne({ pageId: pageKey }, { $set: { keywords: parsedOutput[pageKey] } });
-           }
-           else {
-            console.log(`Keywords already exist for pageId: ${pageKey}`);
-            // Handle the case where keywords already exist for the pageId
+          const existingDocument = await collection.findOne({ pageId: pageKey });
+
+          if (existingDocument) {
+            if (!existingDocument.keywords) {
+              await collection.updateOne({ pageId: pageKey }, { $set: { keywords: parsedOutput[pageKey] } });
+            } else {
+              console.log(`Keywords already exist for pageId: ${pageKey}`);
+            }
+          } else {
+            await collection.insertOne({ pageId: pageKey, keywords: parsedOutput[pageKey] });
           }
-          }
-           else {
-          await collection.insertOne({ pageId: pageKey, keywords: parsedOutput[pageKey] });
+
+          resolve();
+        } catch (parseError) {
+          console.error('Error parsing Python script output:', parseError);
+          reject(parseError);
         }
-        resolve();
-      } catch (parseError) {
-        console.error('Error parsing Python script output:', parseError);
-        reject(parseError);
-      } 
-      
+      } else {
+        reject(`Python script exited with non-zero code: ${code}`);
+      }
     });
-   
   });
 }
 

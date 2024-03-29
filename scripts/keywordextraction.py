@@ -56,6 +56,7 @@ df = pd.DataFrame(list(cursor))
 #df = pd.DataFrame(data)
 
 # Remove irrelevant columns
+
 df = df[['instaPageId', 'captionText']]
 
 # Handle missing values
