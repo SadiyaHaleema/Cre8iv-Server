@@ -1,7 +1,7 @@
 const multer = require('multer');
 const fs = require('fs');
 const { spawn } = require('child_process');
-const {pageinfo}= require('../models/pageInfo');
+const { pageinfo } = require('../models/pageInfo');
 const MongoClient = require('mongodb').MongoClient;
 // Set up Multer for handling file uploads
 let captionsaved;
@@ -21,6 +21,10 @@ const tryupload = async (req, res) => {
       const imageBuffer = req.file.buffer;
       console.log('Image Buffer', imageBuffer);
 
+      // Access pageUsername from form data
+      const pageUsername = req.body.pageUsername;
+      console.log('Page Username', pageUsername);
+
       // Save the image buffer to a file
       fs.writeFile('./images/image.png', imageBuffer, (writeErr) => {
         if (writeErr) {
@@ -33,11 +37,10 @@ const tryupload = async (req, res) => {
         // Process the data and send the response inside the writeFile callback
         processData()
           .then(() => {
-            
             console.log('Processing completed.');
             res.status(200).json({
               success: true,
-              message: "Image Saved Successfully and Caption Generated",
+              message: 'Image Saved Successfully and Caption Generated',
             });
           })
           .catch((error) => {
@@ -80,15 +83,15 @@ async function callPythonScript(message) {
     //   reject(data);
     // });
 
-    pythonProcess.on('close',async (code) => {
+    pythonProcess.on('close', async (code) => {
       console.log(`Python Script exited with code ${code}`);
-      console.log("Scripted Output------------->",scriptOutput);
-    // Parse script output (assuming it's in JSON format)
+      console.log('Scripted Output------------->', scriptOutput);
+      // Parse script output (assuming it's in JSON format)
       let parsedOutput;
       try {
         parsedOutput = JSON.parse(scriptOutput.trim());
-       
-        console.log("Parsed Output===============>",parsedOutput)
+
+        console.log('Parsed Output===============>', parsedOutput);
       } catch (error) {
         console.error('Error parsing script output:', error);
         reject(error);
@@ -98,59 +101,56 @@ async function callPythonScript(message) {
       // Access obj_string and text_string separately
       const objString = parsedOutput.obj_list || '';
       const textString = parsedOutput.text_list || '';
-      console.log("------>ObjString--------",objString)
-      console.log("------>TextString--------",textString)
+      console.log('------>ObjString--------', objString);
+      console.log('------>TextString--------', textString);
 
       // Use objString and textString as needed in your code
-      const client =await MongoClient.connect('mongodb://localhost:27017', {
-          useNewUrlParser: true,
-          useUnifiedTopology: true,
-        });
-        const db = client.db('cre8iv');
-       
-        const collection = db.collection('pageinfos');
-        // collection.updateMany(
-        //   {
-        //     // $or: [
-        //     //   { imgText: { $exists: false } },
-        //     //   { imgObj: { $exists: false } }
-        //     // ]
-        //   },
-        //   {
-        //     $push: {
-        //       imgText: { $each: textString.split(',') },
-        //       imgObj: { $each: objString.split(',') }
-        //     }
-        //   }
-        // )
-        collection.updateMany(
+      const client = await MongoClient.connect('mongodb://localhost:27017', {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+      const db = client.db('cre8iv');
+
+      const collection = db.collection('pageinfos');
+      // collection.updateMany(
+      //   {
+      //     // $or: [
+      //     //   { imgText: { $exists: false } },
+      //     //   { imgObj: { $exists: false } }
+      //     // ]
+      //   },
+      //   {
+      //     $push: {
+      //       imgText: { $each: textString.split(',') },
+      //       imgObj: { $each: objString.split(',') }
+      //     }
+      //   }
+      // )
+      collection
+        .updateMany(
           {},
           {
             $set: {
               imgText: textString.split(','),
-              imgObj: objString.split(',')
-            }
+              imgObj: objString.split(','),
+            },
           }
         )
-    
-      .then(() => {
-        console.log('Documents updated successfully');
-        resolve();
-      })
-      .catch((error) => {
-        console.error('Error updating documents:', error);
-      })
-          });
+
+        .then(() => {
+          console.log('Documents updated successfully');
+          resolve();
+        })
+        .catch((error) => {
+          console.error('Error updating documents:', error);
+        });
+    });
   });
 }
 
 async function calldefpromptScript() {
   return new Promise((resolve, reject) => {
-    const pythonProcess = spawn(
-      'python',
-      ['./openaikey/defprompt.py'],
-      {}
-    );
+    const pythonProcess = spawn('python', ['./openaikey/defprompt.py'], {});
     pythonProcess.stdout.on('data', (data) => {
       console.log(`Generated Caption: ${data}`);
       resolve(data);
@@ -162,32 +162,12 @@ async function calldefpromptScript() {
       reject(data);
     });
 
-    pythonProcess.on('close',(code) => {
+    pythonProcess.on('close', (code) => {
       console.log(`Python Script exited with code ${code}`);
-    // Parse script output (assuming it's in JSON format)
-     
-          });
+      // Parse script output (assuming it's in JSON format)
+    });
   });
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // const message = 'image.png';
 //       // Call the Python script with the file path
