@@ -35,7 +35,7 @@ const tryupload = async (req, res) => {
         }
 
         // Process the data and send the response inside the writeFile callback
-        processData()
+        processData(pageUsername)
           .then(() => {
             console.log('Processing completed.');
             res.status(200).json({
@@ -57,15 +57,15 @@ const tryupload = async (req, res) => {
   }
 };
 
-async function processData() {
+async function processData(pageUsername) {
   const message = './images/image.png';
-  await callPythonScript(message);
+  await callPythonScript(message,pageUsername);
   await calldefpromptScript();
   // console.log("--------Caption---------",captionsaved);
   // return captionsaved;
 }
 
-async function callPythonScript(message) {
+async function callPythonScript(message,pageUsername) {
   return new Promise((resolve, reject) => {
     const pythonProcess = spawn(
       'python',
@@ -128,7 +128,7 @@ async function callPythonScript(message) {
       // )
       collection
         .updateMany(
-          {},
+          {insta_username: pageUsername},
           {
             $set: {
               imgText: textString.split(','),
