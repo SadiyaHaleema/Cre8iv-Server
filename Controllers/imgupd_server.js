@@ -10,7 +10,7 @@ const upload = multer({ storage: storage });
 
 const tryupload = async (req, res) => {
   try {
-    upload.single('image')(req, res, (err) => {
+    upload.single('image')(req, res, async (err) => {
       if (err) {
         return res
           .status(400)
@@ -26,7 +26,7 @@ const tryupload = async (req, res) => {
       console.log('Page Username', pageUsername);
 
       // Save the image buffer to a file
-      fs.writeFile('./images/image.png', imageBuffer, (writeErr) => {
+      fs.writeFile('./images/image.png', imageBuffer, async (writeErr) => {
         if (writeErr) {
           console.error(writeErr);
           return res
@@ -34,21 +34,24 @@ const tryupload = async (req, res) => {
             .json({ success: false, message: 'Error saving image' });
         }
 
-        // Process the data and send the response inside the writeFile callback
-        processData(pageUsername)
-          .then(() => {
-            console.log('Processing completed.');
-            res.status(200).json({
-              success: true,
-              message: 'Image Saved Successfully and Caption Generated',
-            });
-          })
-          .catch((error) => {
-            console.error('Error during processing:', error);
-            res
-              .status(500)
-              .json({ success: false, message: 'Error during processing' });
+        try {
+          // Process the data and send the response inside the writeFile callback
+          await processData(pageUsername);
+          const caption = await calldefpromptScript();
+          console.log('Caption:', caption);
+
+          res.status(200).json({
+            success: true,
+            message: 'Image Saved Successfully and Caption Generated',
+            caption: caption // Sending the caption back in the response
           });
+          
+        } catch (error) {
+          console.error('Error during processing:', error);
+          res
+            .status(500)
+            .json({ success: false, message: 'Error during processing' });
+        }
       });
     });
   } catch (error) {
@@ -60,7 +63,7 @@ const tryupload = async (req, res) => {
 async function processData(pageUsername) {
   const message = './images/image.png';
   await callPythonScript(message,pageUsername);
-  await calldefpromptScript();
+  //await calldefpromptScript();
   // console.log("--------Caption---------",captionsaved);
   // return captionsaved;
 }
@@ -151,10 +154,12 @@ async function callPythonScript(message,pageUsername) {
 async function calldefpromptScript() {
   return new Promise((resolve, reject) => {
     const pythonProcess = spawn('python', ['./openaikey/defprompt.py'], {});
+    let caption = '';
     pythonProcess.stdout.on('data', (data) => {
+      caption += data.toString(); // Concatenate received data to the caption string
       console.log(`Generated Caption: ${data}`);
-      resolve(data);
-      return data;
+      resolve(caption);
+      //return data;
     });
 
     pythonProcess.stderr.on('data', (data) => {
@@ -164,6 +169,8 @@ async function calldefpromptScript() {
 
     pythonProcess.on('close', (code) => {
       console.log(`Python Script exited with code ${code}`);
+      
+
       // Parse script output (assuming it's in JSON format)
     });
   });
