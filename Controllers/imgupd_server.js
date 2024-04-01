@@ -4,7 +4,6 @@ const { spawn } = require('child_process');
 const { pageinfo } = require('../models/pageInfo');
 const MongoClient = require('mongodb').MongoClient;
 // Set up Multer for handling file uploads
-let captionsaved;
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
@@ -20,10 +19,10 @@ const tryupload = async (req, res) => {
       // Access the file buffer
       const imageBuffer = req.file.buffer;
       console.log('Image Buffer', imageBuffer);
-
+     
+       const pageUsername = req.body.pageUsername;
+   
       // Access pageUsername from form data
-      const pageUsername = req.body.pageUsername;
-      console.log('Page Username', pageUsername);
 
       // Save the image buffer to a file
       fs.writeFile('./images/image.png', imageBuffer, async (writeErr) => {
@@ -54,10 +53,14 @@ const tryupload = async (req, res) => {
         }
       });
     });
+
+    
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
+
+  
 };
 
 async function processData(pageUsername) {
@@ -176,31 +179,7 @@ async function calldefpromptScript() {
   });
 }
 
-// const message = 'image.png';
-//       // Call the Python script with the file path
-//       const pythonProcess = spawn('python3', ['test.py', message], {});
-//       console.log('spawn-hello');
 
-//       // Collect the output from the Python script
-//       let output = '';
-//       pythonProcess.stdout.on('data', (data) => {
-//         output += data.toString();
-//         console.log('Output', output);
-//       });
-
-//       image_result = output;
-
-//       //Handle the end of the Python script execution
-//       pythonProcess.on('close', (code) => {
-//         if (code === 0) {
-//           //Successful execution
-//           const results = JSON.parse(output);
-//           console.log(results);
-//           //res.json({ results });
-//         } else {
-//           //Error during execution
-//           //res.status(500).json({ error: 'Error during image analysis' });
-//         }
-//       });
 
 module.exports = tryupload;
+;
