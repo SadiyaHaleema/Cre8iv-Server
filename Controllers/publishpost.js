@@ -9,34 +9,64 @@ const uploadpost = async (req, res) => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    
+
     // Access the database
     const db = client.db('cre8iv'); // Replace 'your_database_name' with your actual database name
-    
+
     // Access the collection
     const collection = db.collection('pageinfos');
-    
+
     // Find the document with the matching pageUsername
     const pageInfo = await collection.findOne({ insta_username: pageUsername });
-    
+
     // If pageInfo is null, no document with the given pageUsername was found
     if (!pageInfo) {
-      return res.status(404).json({ success: false, message: 'Page info not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: 'Page info not found' });
     }
-    
+
     // Retrieve the pageId from the found document
     const pageId = pageInfo.pageId;
-    console.log("InstauserId",pageId);
+    console.log('InstauserId', pageId);
     // Respond with the retrieved pageId
     res.status(200).json({ success: true, pageId: pageId });
-    
   } catch (error) {
     console.error('Error retrieving page info:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
-  } finally {
-    // Close the MongoDB connection
-    client.close();
   }
+  // Require the necessary module
+  let graph = require('fbgraph');
+  // Make the first API call to get user details
+  graph.get(
+    `me?fields=name,id&access_token=${token}`,
+    async (err, userResp) => {
+      if (err) {
+        res.status(404).json({
+          message: err.message || 'Error in getting user details.',
+        });
+        isLoggedIn = false; // Set the flag to false if there's an error
+        return;
+      }
+
+      // Handle the response from the first API call
+      console.log('User details:', userResp);
+
+      // Now make the second API call to get user's Facebook pages
+      graph.get(
+        `me/accounts?fields=name,id,access_token,instagram_business_account{id,username,biography},category&access_token=${token}`,
+        async (err, resp) => {
+          if (err) {
+            res.status(404).json({
+              message: err.message || 'Error in getting user facebook pages.',
+            });
+            isLoggedIn = false; // Set the flag to false if there's an error
+            return;
+          }
+        }
+      );
+    }
+  );
 };
 
 module.exports = uploadpost;

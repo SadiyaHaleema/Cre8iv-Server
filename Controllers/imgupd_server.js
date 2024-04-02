@@ -19,9 +19,9 @@ const tryupload = async (req, res) => {
       // Access the file buffer
       const imageBuffer = req.file.buffer;
       console.log('Image Buffer', imageBuffer);
-     
-       const pageUsername = req.body.pageUsername;
-   
+
+      const pageUsername = req.body.pageUsername;
+
       // Access pageUsername from form data
 
       // Save the image buffer to a file
@@ -42,9 +42,8 @@ const tryupload = async (req, res) => {
           res.status(200).json({
             success: true,
             message: 'Image Saved Successfully and Caption Generated',
-            caption: caption // Sending the caption back in the response
+            caption: caption, // Sending the caption back in the response
           });
-          
         } catch (error) {
           console.error('Error during processing:', error);
           res
@@ -53,25 +52,21 @@ const tryupload = async (req, res) => {
         }
       });
     });
-
-    
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
-
-  
 };
 
 async function processData(pageUsername) {
   const message = './images/image.png';
-  await callPythonScript(message,pageUsername);
+  await callPythonScript(message, pageUsername);
   //await calldefpromptScript();
   // console.log("--------Caption---------",captionsaved);
   // return captionsaved;
 }
 
-async function callPythonScript(message,pageUsername) {
+async function callPythonScript(message, pageUsername) {
   return new Promise((resolve, reject) => {
     const pythonProcess = spawn(
       'python',
@@ -134,7 +129,7 @@ async function callPythonScript(message,pageUsername) {
       // )
       collection
         .updateMany(
-          {insta_username: pageUsername},
+          { insta_username: pageUsername },
           {
             $set: {
               imgText: textString.split(','),
@@ -172,14 +167,10 @@ async function calldefpromptScript() {
 
     pythonProcess.on('close', (code) => {
       console.log(`Python Script exited with code ${code}`);
-      
 
       // Parse script output (assuming it's in JSON format)
     });
   });
 }
 
-
-
 module.exports = tryupload;
-;

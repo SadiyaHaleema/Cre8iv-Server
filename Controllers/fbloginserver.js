@@ -217,7 +217,6 @@ async function processData(responses) {
           const newpost = new post({
             postid: post_id,
             instaPageId: instapgId,
-
             captionText: caption,
             mediaurl: media_url,
             timestamp: timestamp,
