@@ -2,6 +2,13 @@ const MongoClient = require('mongodb').MongoClient;
 
 const uploadpost = async (req, res) => {
   const pageUsername = req.body.pageUsername;
+  //const imageBuffer = req.file.buffer;
+  const caption = req.body.caption;
+
+  console.log('Req.body:', req.body);
+  console.log('Page Username:', pageUsername);
+  //console.log('Image Buffer:', imageBuffer);
+  console.log('Caption:', caption);
 
   try {
     // Connect to MongoDB
@@ -31,42 +38,45 @@ const uploadpost = async (req, res) => {
     console.log('InstauserId', pageId);
     // Respond with the retrieved pageId
     res.status(200).json({ success: true, pageId: pageId });
+
+    //let graph = require('fbgraph');
+    // Make the first API call to get user details
+    // graph.get(
+    //   `${pageId}/media?image_url=https://www.example.com/images/bronz-fonz.jpg
+    //   &caption=caption&access_token=${token}`,
+    //   async (err, userResp) => {
+    //     if (err) {
+    //       res.status(404).json({
+    //         message: err.message || 'Error in getting user details.',
+    //       });
+    //       isLoggedIn = false; // Set the flag to false if there's an error
+    //       return;
+    //     }
+
+    //     // Handle the response from the first API call
+    //     console.log('User details:', userResp);
+    //     creationID= userResp.id;
+
+    //     // Now make the second API call to get user's Facebook pages
+    //     graph.get(
+    //       `${pageId}/media_publish?creation_id=creationID&access_token=${token}`,
+    //       async (err, resp) => {
+    //         if (err) {
+    //           res.status(404).json({
+    //             message: err.message || 'Error in getting user facebook pages.',
+    //           });
+    //           isLoggedIn = false; // Set the flag to false if there's an error
+    //           return;
+    //         }
+    //       }
+    //     );
+    //   }
+    // );
   } catch (error) {
     console.error('Error retrieving page info:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
   // Require the necessary module
-  let graph = require('fbgraph');
-  // Make the first API call to get user details
-  graph.get(
-    `me?fields=name,id&access_token=${token}`,
-    async (err, userResp) => {
-      if (err) {
-        res.status(404).json({
-          message: err.message || 'Error in getting user details.',
-        });
-        isLoggedIn = false; // Set the flag to false if there's an error
-        return;
-      }
-
-      // Handle the response from the first API call
-      console.log('User details:', userResp);
-
-      // Now make the second API call to get user's Facebook pages
-      graph.get(
-        `me/accounts?fields=name,id,access_token,instagram_business_account{id,username,biography},category&access_token=${token}`,
-        async (err, resp) => {
-          if (err) {
-            res.status(404).json({
-              message: err.message || 'Error in getting user facebook pages.',
-            });
-            isLoggedIn = false; // Set the flag to false if there's an error
-            return;
-          }
-        }
-      );
-    }
-  );
 };
 
 module.exports = uploadpost;
