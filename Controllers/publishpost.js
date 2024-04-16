@@ -1,5 +1,5 @@
 const MongoClient = require('mongodb').MongoClient;
-
+const {getToken} = require ('./fbloginserver');
 const uploadpost = async (req, res) => {
   const pageUsername = req.body.pageUsername;
   //const imageBuffer = req.file.buffer;
@@ -9,6 +9,8 @@ const uploadpost = async (req, res) => {
   console.log('Page Username:', pageUsername);
   //console.log('Image Buffer:', imageBuffer);
   console.log('Caption:', caption);
+  const token = getToken(); // Get the token value
+  console.log('Token:', token); // Access the token value
 
   try {
     // Connect to MongoDB

@@ -333,4 +333,7 @@ async function extractkeywords() {
   });
 }
 
-module.exports = { getFacebookLoginUrl, getFbToken, getUserFbPages, getPgData };
+// Export a function that returns the token value
+const getToken = () => token;
+
+module.exports = { getFacebookLoginUrl, getFbToken, getUserFbPages, getPgData,getToken };
