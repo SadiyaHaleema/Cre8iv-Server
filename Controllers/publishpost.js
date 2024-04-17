@@ -1,5 +1,13 @@
 const MongoClient = require('mongodb').MongoClient;
 const {getToken} = require ('./fbloginserver');
+// const {getpublicURL} = require('./imgupd_server');
+let pageId = '';
+let creationID= '';
+
+
+//--------------Initial Original Code One --------------------------
+
+
 const uploadpost = async (req, res) => {
   const pageUsername = req.body.pageUsername;
   //const imageBuffer = req.file.buffer;
@@ -11,7 +19,8 @@ const uploadpost = async (req, res) => {
   console.log('Caption:', caption);
   const token = getToken(); // Get the token value
   console.log('Token:', token); // Access the token value
-
+  // const publicurl = getpublicURL();
+  // console.log('PUBLIC URL:',publicurl);
   try {
     // Connect to MongoDB
     const client = await MongoClient.connect('mongodb://localhost:27017', {
@@ -36,44 +45,35 @@ const uploadpost = async (req, res) => {
     }
 
     // Retrieve the pageId from the found document
-    const pageId = pageInfo.pageId;
+    pageId = pageInfo.pageId;
     console.log('InstauserId', pageId);
-    // Respond with the retrieved pageId
-    res.status(200).json({ success: true, pageId: pageId });
+   
 
-    //let graph = require('fbgraph');
-    // Make the first API call to get user details
-    // graph.get(
-    //   `${pageId}/media?image_url=https://www.example.com/images/bronz-fonz.jpg
-    //   &caption=caption&access_token=${token}`,
-    //   async (err, userResp) => {
-    //     if (err) {
-    //       res.status(404).json({
-    //         message: err.message || 'Error in getting user details.',
-    //       });
-    //       isLoggedIn = false; // Set the flag to false if there's an error
-    //       return;
-    //     }
+    let graph = require('fbgraph');
+    //Make the first API call to get user details
+    graph.post(
+      `${pageId}/media?image_url=https://localhost:3001/images/image.png
+      &caption=caption&access_token=${token}`,
+      async (err, userResp) => {
+        if (err) {
+          console.error('Error:', err);
+          isLoggedIn = false; // Set the flag to false if there's an error
+          return;
+        }
 
-    //     // Handle the response from the first API call
-    //     console.log('User details:', userResp);
-    //     creationID= userResp.id;
+        // Handle the response from the first API call
+        console.log('User details:', userResp);
+        creationID= userResp.data[0].id;
+        console.log("----------------------")
+        console.log(creationID);
+         // Respond with the retrieved pageId
+        res.status(200).json({ success: true, pageId: pageId });
+        // Now make the second API call to get user's Facebook pages
+       
+      }
+    );
 
-    //     // Now make the second API call to get user's Facebook pages
-    //     graph.get(
-    //       `${pageId}/media_publish?creation_id=creationID&access_token=${token}`,
-    //       async (err, resp) => {
-    //         if (err) {
-    //           res.status(404).json({
-    //             message: err.message || 'Error in getting user facebook pages.',
-    //           });
-    //           isLoggedIn = false; // Set the flag to false if there's an error
-    //           return;
-    //         }
-    //       }
-    //     );
-    //   }
-    // );
+  
   } catch (error) {
     console.error('Error retrieving page info:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
@@ -81,4 +81,40 @@ const uploadpost = async (req, res) => {
   // Require the necessary module
 };
 
-module.exports = uploadpost;
+
+const publishpost = async (req, res) => {
+  const token = getToken(); // Get the token value
+  console.log('Token:', token); // Access the token value
+
+  try {
+    console.log('InstauserId', pageId);
+
+    let graph = require('fbgraph');
+
+    graph.post(
+      `${pageId}/media_publish?creation_id=${creationID}&access_token=${token}`,
+      async (err, resp) => {
+        if (err) {
+          console.error('Error:', err);
+          
+          isLoggedIn = false; // Set the flag to false if there's an error
+          return;
+        }
+
+        // Send a success response if graph.post() completes successfully
+        res.status(200).json({
+          success: true,
+          message: 'Post published successfully',
+          responseData: resp, // You can send additional data if needed
+        });
+      }
+    );
+
+    console.log("PublishInstaPost function ran successfully");
+  } catch (error) {
+    console.error('Error retrieving page info:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+module.exports = {publishpost,uploadpost};

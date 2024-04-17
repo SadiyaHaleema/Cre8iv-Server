@@ -1,3 +1,4 @@
+
 const multer = require('multer');
 const fs = require('fs');
 const { spawn } = require('child_process');
@@ -6,6 +7,7 @@ const MongoClient = require('mongodb').MongoClient;
 // Set up Multer for handling file uploads
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
+
 
 const tryupload = async (req, res) => {
   try {
@@ -16,13 +18,17 @@ const tryupload = async (req, res) => {
           .json({ success: false, message: 'File upload failed' });
       }
 
+
       // Access the file buffer
       const imageBuffer = req.file.buffer;
       console.log('Image Buffer', imageBuffer);
 
+
       const pageUsername = req.body.pageUsername;
 
+
       // Access pageUsername from form data
+
 
       // Save the image buffer to a file
       fs.writeFile('./images/image.png', imageBuffer, async (writeErr) => {
@@ -33,11 +39,13 @@ const tryupload = async (req, res) => {
             .json({ success: false, message: 'Error saving image' });
         }
 
+
         try {
           // Process the data and send the response inside the writeFile callback
           await processData(pageUsername);
           const caption = await calldefpromptScript();
           console.log('Caption:', caption);
+
 
           res.status(200).json({
             success: true,
@@ -58,6 +66,7 @@ const tryupload = async (req, res) => {
   }
 };
 
+
 async function processData(pageUsername) {
   const message = './images/image.png';
   await callPythonScript(message, pageUsername);
@@ -65,6 +74,7 @@ async function processData(pageUsername) {
   // console.log("--------Caption---------",captionsaved);
   // return captionsaved;
 }
+
 
 async function callPythonScript(message, pageUsername) {
   return new Promise((resolve, reject) => {
@@ -79,10 +89,12 @@ async function callPythonScript(message, pageUsername) {
       //console.log(`Python Script Output: ${data}`);
     });
 
+
     // pythonProcess.stderr.on('data', (data) => {
     //   console.error(`Error from Python Script: ${data}`);
     //   reject(data);
     // });
+
 
     pythonProcess.on('close', async (code) => {
       console.log(`Python Script exited with code ${code}`);
@@ -92,6 +104,7 @@ async function callPythonScript(message, pageUsername) {
       try {
         parsedOutput = JSON.parse(scriptOutput.trim());
 
+
         console.log('Parsed Output===============>', parsedOutput);
       } catch (error) {
         console.error('Error parsing script output:', error);
@@ -99,11 +112,13 @@ async function callPythonScript(message, pageUsername) {
         return;
       }
 
+
       // Access obj_string and text_string separately
       const objString = parsedOutput.obj_list || '';
       const textString = parsedOutput.text_list || '';
       console.log('------>ObjString--------', objString);
       console.log('------>TextString--------', textString);
+
 
       // Use objString and textString as needed in your code
       const client = await MongoClient.connect('mongodb://localhost:27017', {
@@ -111,6 +126,7 @@ async function callPythonScript(message, pageUsername) {
         useUnifiedTopology: true,
       });
       const db = client.db('cre8iv');
+
 
       const collection = db.collection('pageinfos');
       // collection.updateMany(
@@ -138,6 +154,7 @@ async function callPythonScript(message, pageUsername) {
           }
         )
 
+
         .then(() => {
           console.log('Documents updated successfully');
           resolve();
@@ -148,6 +165,7 @@ async function callPythonScript(message, pageUsername) {
     });
   });
 }
+
 
 async function calldefpromptScript() {
   return new Promise((resolve, reject) => {
@@ -160,17 +178,24 @@ async function calldefpromptScript() {
       //return data;
     });
 
+
     pythonProcess.stderr.on('data', (data) => {
       console.error(`Error from Python Script: ${data}`);
       reject(data);
     });
 
+
     pythonProcess.on('close', (code) => {
       console.log(`Python Script exited with code ${code}`);
+
 
       // Parse script output (assuming it's in JSON format)
     });
   });
 }
 
+
 module.exports = tryupload;
+
+
+
