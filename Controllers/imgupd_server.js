@@ -31,7 +31,7 @@ const tryupload = async (req, res) => {
 
 
       // Save the image buffer to a file
-      fs.writeFile('./images/image.png', imageBuffer, async (writeErr) => {
+      fs.writeFile('./images/image.jpeg', imageBuffer, async (writeErr) => {
         if (writeErr) {
           console.error(writeErr);
           return res
@@ -68,7 +68,7 @@ const tryupload = async (req, res) => {
 
 
 async function processData(pageUsername) {
-  const message = './images/image.png';
+  const message = './images/image.jpeg';
   await callPythonScript(message, pageUsername);
   //await calldefpromptScript();
   // console.log("--------Caption---------",captionsaved);
