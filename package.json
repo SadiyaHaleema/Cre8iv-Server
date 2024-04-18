@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@azure/storage-blob": "^12.17.0",
     "@google-cloud/vision": "^4.0.2",
     "@img/sharp-win32-x64": "^0.33.1",
     "axios": "^1.6.7",
