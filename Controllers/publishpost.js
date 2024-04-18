@@ -1,14 +1,13 @@
 const MongoClient = require('mongodb').MongoClient;
 const axios = require('axios');
-const {getToken} = require ('./fbloginserver');
+const { getToken } = require('./fbloginserver');
 // const {getpublicURL} = require('./imgupd_server');
 let pageId = '';
-let creationID= '';
-
+let creationID = '';
 
 //--------------Initial Original Code One --------------------------
 const imagePath = './images/image.jpeg'; // Assuming the image is saved with this path
-    // Generate public URL for the saved image
+// Generate public URL for the saved image
 const publicURL = `https://localhost:3001/${imagePath}`;
 
 const uploadpost = async (req, res) => {
@@ -50,37 +49,38 @@ const uploadpost = async (req, res) => {
     // Retrieve the pageId from the found document
     pageId = pageInfo.pageId;
     console.log('InstauserId', pageId);
-    imageurl = "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/1200px-Image_created_with_a_mobile_phone.png";
+    imageurl =
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/1200px-Image_created_with_a_mobile_phone.png';
     //let graph = require('fbgraph');
     //Make the first API call to get user details
     const token = getToken(); // Get the token value
-  console.log('--------Before Graph Call ----------Token-----------:', token); 
+    console.log('--------Before Graph Call ----------Token-----------:', token);
 
+    const postData = {
+      image_url:
+        'https://i.pinimg.com/originals/94/6f/d2/946fd20c35c6a575fdbc8a836627abd9.jpg',
+      caption: 'Sampleposting',
+      access_token: token,
+    };
 
+    const response = await axios.post(
+      `https://graph.facebook.com/v18.0/${pageId}/media`,
+      postData
+    );
 
-
-const postData = {
-  image_url: 'https://i.pinimg.com/originals/94/6f/d2/946fd20c35c6a575fdbc8a836627abd9.jpg',
-  caption: 'Sampleposting',
-  access_token: token
-};
-
-axios.post(`https://graph.facebook.com/v18.0/${pageId}/media`, postData)
-  .then(response => {
-    creationID= response.data.id;
-    console.log("Creation Id inside 1st Call",creationID);
+    creationID = response.data.id;
+    console.log('Creation Id inside 1st Call', creationID);
     console.log('Response:', response.data);
-  })
-  .catch(error => {
-    console.error('Error:', error.response.data);
-  });
-    // graph.post(
+
+    // Respond to the client with success message or any other data as needed
+    res.status(200).json({ success: true, creationID: creationID });
+
     //   `/${pageId}/media?image_url=${imageurl}&caption=${caption}&access_token=${token}`,
 
     //   async (err, userResp) => {
     //     if (err) {
     //       const token = getToken(); // Get the token value
-          
+
     //       isLoggedIn = false; // Set the flag to false if there's an error
     //       return;
     //     }
@@ -93,52 +93,55 @@ axios.post(`https://graph.facebook.com/v18.0/${pageId}/media`, postData)
     //      // Respond with the retrieved pageId
     //     res.status(200).json({ success: true, pageId: pageId });
     //     // Now make the second API call to get user's Facebook pages
-       
+
     //   }
     // );
-
-  
   } catch (error) {
     console.error('Error retrieving page info:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
+
+  // Add unhandledRejection event listener here
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    // Handle or log the unhandled rejection as needed
+  });
   // Require the necessary module
 };
 
-
 const publishpost = async (req, res) => {
- console.log("Inside PublishPost");
+  console.log('Inside PublishPost');
   try {
     console.log('InstauserId', pageId);
 
-   
     const token = getToken(); // Get the token value
     console.log('Token:', token); // Access the token value
-    console.log("Creation Id Inside Publish Post 2nd Call",creationID);
-
+    console.log('Creation Id Inside Publish Post 2nd Call', creationID);
 
     const postData = {
-      creation_id : creationID,
-      access_token: token
+      creation_id: creationID,
+      access_token: token,
     };
-    
-    axios.post(`https://graph.facebook.com/v18.0/${pageId}/media_publish`, postData)
-      .then(response => {
+
+    axios
+      .post(
+        `https://graph.facebook.com/v18.0/${pageId}/media_publish`,
+        postData
+      )
+      .then((response) => {
         console.log('Response:', response.data);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('Error:', error.response.data);
       });
-
-
 
     // graph.post(
     //   `/${pageId}/media_publish?creation_id=${creationID}&access_token=${token}`,
     //   async (err, resp) => {
     //     if (err) {
-          
+
     //                   console.error('Error:', err);
-          
+
     //       isLoggedIn = false; // Set the flag to false if there's an error
     //       return;
     //     }
@@ -152,11 +155,11 @@ const publishpost = async (req, res) => {
     //   }
     // );
 
-    console.log("PublishInstaPost function ran successfully");
+    console.log('PublishInstaPost function ran successfully');
   } catch (error) {
     console.error('Error retrieving page info:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
-module.exports = {publishpost,uploadpost};
+module.exports = { publishpost, uploadpost };

@@ -336,4 +336,10 @@ async function extractkeywords() {
 // Export a function that returns the token value
 const getToken = () => token;
 
-module.exports = { getFacebookLoginUrl, getFbToken, getUserFbPages, getPgData,getToken };
+module.exports = {
+  getFacebookLoginUrl,
+  getFbToken,
+  getUserFbPages,
+  getPgData,
+  getToken,
+};
