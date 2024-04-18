@@ -6,7 +6,15 @@ const chatbot = async (req, res) => {
     const message = req.body.message;
     console.log('Message:', message);
 
-    const response = await callchatbot_prompt(message);
+    const postideas = await callchatbot_prompt(message);
+    console.log('Post Ideas:', postideas);
+
+
+          res.status(200).json({
+            success: true,
+            message: 'Post Ideas Generated Successfully',
+            postideas: postideas, // Sending the caption back in the response
+          });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Internal server error' });
