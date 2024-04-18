@@ -4,25 +4,60 @@ const { getToken } = require('./fbloginserver');
 // const {getpublicURL} = require('./imgupd_server');
 let pageId = '';
 let creationID = '';
+let publicURL = '';
 
-//--------------Initial Original Code One --------------------------
-const imagePath = './images/image.jpeg'; // Assuming the image is saved with this path
 // Generate public URL for the saved image
-const publicURL = `https://localhost:3001/${imagePath}`;
+
+const { BlobServiceClient } = require('@azure/storage-blob');
+const fs = require('fs');
+
+const connectionString = 'DefaultEndpointsProtocol=https;AccountName=cre8ivimages;AccountKey=AaAE6uRME7B5KXL2FSxjCUTL9m2dMSKOwvcoEa/vyHuZc8cmGSGOxc35zJkfY9c++uRFMdIE3hcK+AStnMp+qg==;EndpointSuffix=core.windows.net';
+const containerName = 'cre8ivimages'; // Specify the name of your container
+const imagePath = './images/image.jpeg'; // Path to your local image
+
+async function uploadImageToBlobStorage() {
+    const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+    const containerClient = blobServiceClient.getContainerClient(containerName);
+    const blobName = 'image.jpeg'; // Specify the name you want for the image in Azure Blob Storage
+
+    // Upload the image file to the blob container
+    const blobClient = containerClient.getBlockBlobClient(blobName);
+    const imageData = fs.readFileSync(imagePath);
+    await blobClient.upload(imageData, imageData.length);
+
+    console.log('Image uploaded to Azure Blob Storage');
+
+    const public_URL = `${containerClient.url}/${blobName}`;
+    console.log('Public URL:', public_URL); // Output the public URL to console
+
+    return public_URL;
+}
 
 const uploadpost = async (req, res) => {
   const pageUsername = req.body.pageUsername;
   //const imageBuffer = req.file.buffer;
   const caption = req.body.caption;
+  // Upload the image to Azure Blob Storage and get the public URL
+  try {
+    // Upload the image to Azure Blob Storage and get the public URL
+    publicURL = await uploadImageToBlobStorage();
 
-  console.log('Req.body:', req.body);
-  console.log('Page Username:', pageUsername);
-  //console.log('Image Buffer:', imageBuffer);
-  console.log('Caption:', caption);
-  const token = getToken(); // Get the token value
-  console.log('Token:', token); // Access the token value
-  // const publicurl = getpublicURL();
-  // console.log('PUBLIC URL:',publicurl);
+    console.log('Req.body:', req.body);
+    console.log('Page Username:', pageUsername);
+    console.log('Caption:', caption);
+    const token = getToken(); // Get the token value
+    console.log('Token:', token); // Access the token value
+
+    // Continue with your remaining logic...
+
+   
+   
+  } 
+  catch (error) {
+    console.error('Error uploading image to Azure Blob Storage:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+}
+  
   try {
     // Connect to MongoDB
     const client = await MongoClient.connect('mongodb://localhost:27017', {
@@ -49,17 +84,14 @@ const uploadpost = async (req, res) => {
     // Retrieve the pageId from the found document
     pageId = pageInfo.pageId;
     console.log('InstauserId', pageId);
-    imageurl =
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/1200px-Image_created_with_a_mobile_phone.png';
-    //let graph = require('fbgraph');
+     console.log("Azure Returned Public Url",publicURL);
     //Make the first API call to get user details
     const token = getToken(); // Get the token value
     console.log('--------Before Graph Call ----------Token-----------:', token);
 
     const postData = {
-      image_url:
-        'https://i.pinimg.com/originals/94/6f/d2/946fd20c35c6a575fdbc8a836627abd9.jpg',
-      caption: 'Sampleposting',
+      image_url:publicURL,
+      caption: caption,
       access_token: token,
     };
 
@@ -73,29 +105,9 @@ const uploadpost = async (req, res) => {
     console.log('Response:', response.data);
 
     // Respond to the client with success message or any other data as needed
-    res.status(200).json({ success: true, creationID: creationID });
+    res.status(200).json({ success: true, creationID: creationID,publicURL:publicURL });
 
-    //   `/${pageId}/media?image_url=${imageurl}&caption=${caption}&access_token=${token}`,
-
-    //   async (err, userResp) => {
-    //     if (err) {
-    //       const token = getToken(); // Get the token value
-
-    //       isLoggedIn = false; // Set the flag to false if there's an error
-    //       return;
-    //     }
-
-    //     // Handle the response from the first API call
-    //     console.log('User details:', userResp);
-    //     creationID= userResp.data[0].id;
-    //     console.log("----------------------")
-    //     console.log(creationID);
-    //      // Respond with the retrieved pageId
-    //     res.status(200).json({ success: true, pageId: pageId });
-    //     // Now make the second API call to get user's Facebook pages
-
-    //   }
-    // );
+   
   } catch (error) {
     console.error('Error retrieving page info:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
@@ -135,7 +147,46 @@ const publishpost = async (req, res) => {
         console.error('Error:', error.response.data);
       });
 
-    // graph.post(
+
+
+    console.log('PublishInstaPost function ran successfully');
+  } catch (error) {
+    console.error('Error retrieving page info:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+module.exports = { publishpost, uploadpost };
+
+
+
+
+//Graph Calls 
+ //   `/${pageId}/media?image_url=${imageurl}&caption=${caption}&access_token=${token}`,
+
+    //   async (err, userResp) => {
+    //     if (err) {
+    //       const token = getToken(); // Get the token value
+
+    //       isLoggedIn = false; // Set the flag to false if there's an error
+    //       return;
+    //     }
+
+    //     // Handle the response from the first API call
+    //     console.log('User details:', userResp);
+    //     creationID= userResp.data[0].id;
+    //     console.log("----------------------")
+    //     console.log(creationID);
+    //      // Respond with the retrieved pageId
+    //     res.status(200).json({ success: true, pageId: pageId });
+    //     // Now make the second API call to get user's Facebook pages
+
+    //   }
+    // );
+
+
+
+        // graph.post(
     //   `/${pageId}/media_publish?creation_id=${creationID}&access_token=${token}`,
     //   async (err, resp) => {
     //     if (err) {
@@ -154,12 +205,3 @@ const publishpost = async (req, res) => {
     //     });
     //   }
     // );
-
-    console.log('PublishInstaPost function ran successfully');
-  } catch (error) {
-    console.error('Error retrieving page info:', error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
-  }
-};
-
-module.exports = { publishpost, uploadpost };

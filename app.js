@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 
 //console.log('IN APP>JS');
 const app = express();
+// Serve static files from the 'images' directory
+app.use('/images', express.static('images'));
 const middlewares = require('./middlewares');
 const corsOptions = {
   origin: 'https://localhost:3000',
