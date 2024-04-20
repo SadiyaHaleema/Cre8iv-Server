@@ -1,9 +1,7 @@
 const MongoClient = require('mongodb').MongoClient;
-const axios = require('axios');
  // Require the necessary module
  let graph = require('fbgraph');
 const { getToken } = require('./fbloginserver');
-const token = getToken(); // Get the token value
 
 const fetchfbpgtoken = async (req, res) => {
 
@@ -32,48 +30,52 @@ const fetchfbpgtoken = async (req, res) => {
     }
 
     // Retrieve the pageId from the found document
-    facebookpageId = pageInfo.fbpageId;
+    const facebookpageId = pageInfo.fbpageId;
     console.log('facebook Page Id', facebookpageId);
 
   
       console.log('INSIDE 2nd Api Graph Call:: ');
-      graph.get(
-        `me/accounts?fields=name,id,access_token&access_token=${token}`,
-        async (err, resp) => {
-          if (err) {
-            isLoggedIn = false; // Set the flag to false if there's an error
-            return;
+      let graph = require('fbgraph');
+      const token = getToken(); // Get the token value
+      const resp = await new Promise((resolve, reject) => {
+        graph.get(
+          `me/accounts?fields=name,id,access_token&access_token=${token}`,
+          (err, responseData) => {
+            if (err) {
+              console.error('Error in Graph API call:', err);
+              reject(err);
+            } 
+            else {
+              console.log("Graph Api completed Successfully");
+              resolve(responseData);
+            }
           }
+        );
+      });
+  
+      console.log('After 2nd Api Graph Call:: ');
+  
+      // Handle the response from the second API call
+      console.log('User Facebook pages Tokens:', resp);
+     
+     // Loop through the pages obtained from Facebook Graph API response
+    for (const page of resp.data) {
+      console.log("Inside Loop Page Id",fbpgId);
+      // Match the facebookPageId with the page ID from the loop
+      if (page.id == facebookpageId) {
+        // Retrieve the page token for the matched page
+        const pageAccessToken = page.access_token;
+        console.log('Page Access Token:', pageAccessToken);
+                  }
 
-         
-          
-          console.log('After 2nd Api Graph Call:: ');
-  
-          // Handle the response from the second API call
-          console.log('User Facebook pages Tokens:', resp);
-  
-         // Loop through the pages obtained from Facebook Graph API response
-        for (const page of resp.data) {
-          console.log("Inside Loop Page Id",page.id);
-          // Match the facebookPageId with the page ID from the loop
-          if (page.id === facebookPageId) {
-            // Retrieve the page token for the matched page
-            const pageAccessToken = page.access_token;
-            console.log('Page Access Token:', pageAccessToken);
-  
-            // Send the response back to the client
-            // res.json({ isLoggedIn: true, data: resp.data });
-            return; // Break the loop since we found the matching page
-          }
-        }
-         
+      else
+      {
+        console.log("Error in Matching Ids" );
+      }
+    }
            
-       
-        }
-      );
-           
-     // Respond to the client with success message or any other data as needed
-     res.status(200).json({ success: true });
+    // Respond to the client based on whether user is logged in or not
+       res.status(200).json({ success: true, data: resp.data });
 
   }
   catch{
@@ -85,16 +87,15 @@ const fetchfbpgtoken = async (req, res) => {
 
 const scheduling = async (req, res) => {
    
-  //   try {
+    try {
       
-  //     console.log('Req.body:', req.body);
+      console.log('Req.body:', req.body);
       
        
-  //        } 
-  //   catch (error) {
-  //     console.error('Error uploading image to Azure Blob Storage:', error);
-  //     res.status(500).json({ success: false, message: 'Internal server error' });
-  // }
+         } 
+    catch (error) {
+      res.status(500).json({ success: false, message: 'Internal server error' });
+  }
     
   //   try {
   //     // Connect to MongoDB
@@ -147,12 +148,8 @@ const scheduling = async (req, res) => {
   //     res.status(500).json({ success: false, message: 'Internal server error' });
   //   }
   
-  //   // Add unhandledRejection event listener here
-  //   process.on('unhandledRejection', (reason, promise) => {
-  //     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  //     // Handle or log the unhandled rejection as needed
-  //   });
-    // Require the necessary module
+ 
+    
   };
 
 
