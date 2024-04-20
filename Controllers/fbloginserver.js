@@ -18,8 +18,8 @@ let fbuser_id, fbuser_name;
 
 //const pageTokens = [];
 const instapageIds = [];
-// const fbpageIds = [];
-// const fbpagenames =[];
+const fbpageIds = [];
+const fbpagenames =[];
 
 const categories = [];
 const usenames = [];
@@ -106,6 +106,8 @@ const getUserFbPages = async (req, res) => {
           // Process page data
           const pageData = resp.data;
           pageData.forEach(async (page) => {
+            const fbpgid = page.id;
+            const fbpgname = page.name;
             const instapgId = page.instagram_business_account.id;
             const category = page.category;
             const insta_username = page.instagram_business_account.username;
@@ -127,6 +129,8 @@ const getUserFbPages = async (req, res) => {
               // Save pageinfo to MongoDB
               const newpageinfo = new pageinfo({
                 pageId: instapgId,
+                fbpageId: fbpgid,
+                fbpagename:fbpgname, 
                 userId: userResp.id, // Assuming userResp contains user details
                 user_name: userResp.name, // Assuming userResp contains user details
                 category,
@@ -150,6 +154,8 @@ const getUserFbPages = async (req, res) => {
             // Store values in arrays
 
             instapageIds.push(instapgId);
+            fbpageIds.push(fbpgid);
+            fbpagenames.push(fbpgname);
             categories.push(category);
             usenames.push(insta_username);
             biographies.push(biography);
@@ -211,7 +217,7 @@ async function processData(responses) {
 
         if (postinfo) {
           console.log(
-            `pageinfo with pageId ${post_id} already exists. Skipping.`
+            `pageinfo with PostId ${post_id} already exists. Skipping.`
           );
         } else {
           const newpost = new post({

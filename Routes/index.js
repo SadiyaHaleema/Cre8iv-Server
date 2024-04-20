@@ -14,7 +14,7 @@ const {
 const { uploadpost, publishpost } = require('../Controllers/publishpost');
 const tryupload = require('../Controllers/imgupd_server');
 const chatbot = require('../Controllers/chatbot_server');
-
+const {scheduling,fetchfbpgtoken} = require('../Controllers/schedule_server');
 router.route('/fblogin').get(getFacebookLoginUrl);
 
 router.route('/fbtoken').get(getFbToken);
@@ -25,3 +25,5 @@ router.route('/uploadimg').post(tryupload);
 router.route('/uploadpost').post(uploadpost);
 router.route('/publishpost').post(publishpost);
 router.route('/chatbot').post(chatbot);
+router.route('/getfbpgtoken').post(fetchfbpgtoken);
+router.route('/schedulepost').post(scheduling);

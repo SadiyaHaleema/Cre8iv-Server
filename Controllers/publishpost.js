@@ -1,7 +1,6 @@
 const MongoClient = require('mongodb').MongoClient;
 const axios = require('axios');
 const { getToken } = require('./fbloginserver');
-// const {getpublicURL} = require('./imgupd_server');
 let pageId = '';
 let creationID = '';
 let publicURL = '';
