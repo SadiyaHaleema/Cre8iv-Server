@@ -54,9 +54,11 @@ const getFbToken = async (req, res) => {
       token = fbRes.access_token;
       //fbRes.access_token = null;
       //res.json(fbRes);
-      res.redirect('https://localhost:3000/');
+      let isLoggedIn = true;
+      res.redirect(`https://localhost:3000/?stateloggedIn=${isLoggedIn}`);
     }
   );
+
 };
 
 const getUserFbPages = async (req, res) => {
