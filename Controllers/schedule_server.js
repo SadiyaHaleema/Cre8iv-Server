@@ -2,7 +2,9 @@ const MongoClient = require('mongodb').MongoClient;
 // Require the necessary module
 let graph = require('fbgraph');
 const { getToken } = require('./fbloginserver');
+const { getPublicUrl } = require('./publishpost');
 
+let unixdatetime = '';
 const fetchfbpgtoken = async (req, res) => {
   try {
     const instaUsername = req.body.pageUsername;
@@ -79,59 +81,29 @@ const fetchfbpgtoken = async (req, res) => {
 const scheduling = async (req, res) => {
   try {
     console.log('Req.body:', req.body);
+    unixdatetime = req.body.unixdatetime;
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 
-  //   try {
-  //     // Connect to MongoDB
-  //     const client = await MongoClient.connect('mongodb://localhost:27017', {
-  //       useNewUrlParser: true,
-  //       useUnifiedTopology: true,
-  //     });
+  try {
+    //if this doesnt work
+    //caption, published, scheduled_publish_time(1713691754),url
+    //epoch time conversion
 
-  //     // Access the database
-  //     const db = client.db('cre8iv'); // Replace 'your_database_name' with your actual database name
+    //then do this
+    // curl -X POST "https://graph.facebook.com/v19.0/page_id/feed" \
+    //  -H "Content-Type: application/json" \
+    //  -d '{
+    //        "message":"your_message_text",
+    //        "link":"your_url",
+    //        "published":"false",
+    //        "scheduled_publish_time":"unix_time_stamp_of_a_future_date",
+    //      }'
 
-  //     // Access the collection
-  //     const collection = db.collection('pageinfos');
-
-  //     // Find the document with the matching pageUsername
-  //     const pageInfo = await collection.findOne({ insta_username: pageUsername });
-
-  //     // If pageInfo is null, no document with the given pageUsername was found
-  //     if (!pageInfo) {
-  //       return res
-  //         .status(404)
-  //         .json({ success: false, message: 'Page info not found' });
-  //     }
-
-  //     // Retrieve the pageId from the found document
-  //     fbpgId = pageInfo.fbpageId;
-  //     console.log('Facebook Page Id',fbpgId );
-  //     const postData = {
-  //       image_url:publicURL,
-  //       caption: caption,
-  //       access_token: token,
-  //     };
-
-  //     const response = await axios.post(
-  //       `https://graph.facebook.com/v18.0/${pageId}/media`,
-  //       postData
-  //     );
-
-  //     creationID = response.data.id;
-  //     console.log('Creation Id inside 1st Call', creationID);
-  //     console.log('Response:', response.data);
-
-  //     // Respond to the client with success message or any other data as needed
-  //     res.status(200).json({ success: true, creationID: creationID,publicURL:publicURL });
-
-  //   }
-  //   catch (error) {
-  //     console.error('Error retrieving page info:', error);
-  //     res.status(500).json({ success: false, message: 'Internal server error' });
-  //   }
+    const publicURL = getPublicUrl(); // Get the token value
+    //graph.post(${facebookpageId}/photos?caption=${caption}&published=false&scheduled_publish_time=${epochdatetime}&link=${publicURL}&access_token=${pageAccessToken})
+  } catch {}
 };
 
 module.exports = { scheduling, fetchfbpgtoken };
