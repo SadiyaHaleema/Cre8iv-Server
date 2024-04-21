@@ -2,9 +2,35 @@ const MongoClient = require('mongodb').MongoClient;
 // Require the necessary module
 let graph = require('fbgraph');
 const { getToken } = require('./fbloginserver');
-const { getPublicUrl } = require('./publishpost');
+const { BlobServiceClient } = require('@azure/storage-blob');
+const fs = require('fs');
+let unixdatetime,facebookpageId,pageAccessToken,publicURL = '';
 
-let unixdatetime = '';
+// Generate public URL for the saved image
+
+const connectionString =
+  'DefaultEndpointsProtocol=https;AccountName=cre8ivimages;AccountKey=AaAE6uRME7B5KXL2FSxjCUTL9m2dMSKOwvcoEa/vyHuZc8cmGSGOxc35zJkfY9c++uRFMdIE3hcK+AStnMp+qg==;EndpointSuffix=core.windows.net';
+const containerName = 'cre8ivimages'; // Specify the name of your container
+const imagePath = './images/image.jpeg'; // Path to your local image
+
+async function uploadImageToBlobStorage() {
+  const blobServiceClient =
+    BlobServiceClient.fromConnectionString(connectionString);
+  const containerClient = blobServiceClient.getContainerClient(containerName);
+  const blobName = 'image.jpeg'; // Specify the name you want for the image in Azure Blob Storage
+
+  // Upload the image file to the blob container
+  const blobClient = containerClient.getBlockBlobClient(blobName);
+  const imageData = fs.readFileSync(imagePath);
+  await blobClient.upload(imageData, imageData.length);
+
+  console.log('Image uploaded to Azure Blob Storage');
+
+  const public_URL = `${containerClient.url}/${blobName}`;
+  console.log('Public URL:', public_URL); // Output the public URL to console
+
+  return public_URL;
+}
 const fetchfbpgtoken = async (req, res) => {
   try {
     const instaUsername = req.body.pageUsername;
@@ -33,14 +59,14 @@ const fetchfbpgtoken = async (req, res) => {
     }
 
     // Retrieve the pageId from the found document
-    const facebookpageId = pageInfo.fbpageId;
+    facebookpageId = pageInfo.fbpageId;
     console.log('facebook Page Id', facebookpageId);
 
     console.log('INSIDE 2nd Api Graph Call:: ');
     let graph = require('fbgraph');
     const token = getToken(); // Get the token value
     const resp = await new Promise((resolve, reject) => {
-      graph.get(
+       graph.get(
         `me/accounts?fields=name,id,access_token&access_token=${token}`,
         (err, responseData) => {
           if (err) {
@@ -65,7 +91,7 @@ const fetchfbpgtoken = async (req, res) => {
       // Match the facebookPageId with the page ID from the loop
       if (page.id == facebookpageId) {
         // Retrieve the page token for the matched page
-        const pageAccessToken = page.access_token;
+        pageAccessToken = page.access_token;
         console.log('Page Access Token:', pageAccessToken);
       }
     }
@@ -81,12 +107,52 @@ const fetchfbpgtoken = async (req, res) => {
 const scheduling = async (req, res) => {
   try {
     console.log('Req.body:', req.body);
-    unixdatetime = req.body.unixdatetime;
+    unixdatetime = req.body.UnixDateTime;
+    caption = req.body.caption;
+    console.log("UnixDateTime ISO",unixdatetime);
+    console.log("hello");
+    
+    console.log("Inside Scheduling Public URL ", publicURL);
+    console.log("Inside Scheduling Facebook ID",facebookpageId);
+    console.log("Inside Scheduling PageAccessToeken",pageAccessToken);
+        // Convert the human-readable time string to a Date object
+    var datetimeObject = new Date(unixdatetime);
+
+    // Convert the Date object to epoch time (Unix timestamp)
+    var epochTime = Math.floor(datetimeObject.getTime() / 1000);
+
+    console.log("UTC TIME in Epoch INT",epochTime);
+ // Upload the image to Azure Blob Storage and get the public URL
+    publicURL = await uploadImageToBlobStorage();
+    const resp = await new Promise((resolve, reject) => {
+      const postData = {
+        caption: caption,
+        published:false,
+        scheduled_publish_time:epochTime,
+        url: publicURL,
+        access_token: pageAccessToken,
+      };
+
+      //?caption=${caption}&published=false&scheduled_publish_time=${epochTime}&url=${publicURL}&access_token=${pageAccessToken}
+      graph.post(
+        `${facebookpageId}/photos`,
+        postData,
+        (err, responseData) => {
+          if (err) {
+            console.error('Error in Graph API call:', err);
+            reject(err);
+          } else {
+            console.log('Graph Api completed Successfully');
+            resolve(responseData);
+          }
+        }
+      );
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 
-  try {
+  
     //if this doesnt work
     //caption, published, scheduled_publish_time(1713691754),url
     //epoch time conversion
@@ -101,9 +167,9 @@ const scheduling = async (req, res) => {
     //        "scheduled_publish_time":"unix_time_stamp_of_a_future_date",
     //      }'
 
-    const publicURL = getPublicUrl(); // Get the token value
+   
     //graph.post(${facebookpageId}/photos?caption=${caption}&published=false&scheduled_publish_time=${epochdatetime}&link=${publicURL}&access_token=${pageAccessToken})
-  } catch {}
+  
 };
 
 module.exports = { scheduling, fetchfbpgtoken };
