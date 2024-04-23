@@ -148,6 +148,9 @@ const scheduling = async (req, res) => {
         }
       );
     });
+
+    // Respond to the client based on whether user is logged in or not
+    res.status(200).json({ success: true, data: resp.data });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
