@@ -11,10 +11,11 @@ const {
   getPgData,
 } = require('../Controllers/fbloginserver');
 
-const { uploadpost, publishpost } = require('../Controllers/publishpost');
+const { uploadpost, publishpost } = require('../Controllers/instapublish_server');
 const tryupload = require('../Controllers/imgupd_server');
 const chatbot = require('../Controllers/chatbot_server');
 const {scheduling,fetchfbpgtoken} = require('../Controllers/schedule_server');
+const {fetchfbpagetoken,fbpostpublish } = require('../Controllers/facebookpublish_server') ;
 router.route('/fblogin').get(getFacebookLoginUrl);
 
 router.route('/fbtoken').get(getFbToken);
@@ -27,3 +28,6 @@ router.route('/publishpost').post(publishpost);
 router.route('/chatbot').post(chatbot);
 router.route('/getfbpgtoken').post(fetchfbpgtoken);
 router.route('/schedulepost').post(scheduling);
+//Facebook Post Publishing Function Calls : 1-Retrieve FbToken , 2- Fb Post Publish
+router.route('/retreivefbpgtoken').post(fetchfbpagetoken);
+router.route('/fbpublishpost').post(fbpostpublish);

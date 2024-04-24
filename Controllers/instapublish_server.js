@@ -1,6 +1,6 @@
 const MongoClient = require('mongodb').MongoClient;
-const axios = require('axios');
 const { getToken } = require('./fbloginserver');
+let graph = require('fbgraph');
 let pageId = '';
 let creationID = '';
 let publicURL = '';
@@ -36,7 +36,6 @@ async function uploadImageToBlobStorage() {
 
 const uploadpost = async (req, res) => {
   const pageUsername = req.body.pageUsername;
-  //const imageBuffer = req.file.buffer;
   const caption = req.body.caption;
   // Upload the image to Azure Blob Storage and get the public URL
   try {
@@ -86,20 +85,32 @@ const uploadpost = async (req, res) => {
     const token = getToken(); // Get the token value
     console.log('--------Before Graph Call ----------Token-----------:', token);
 
-    const postData = {
-      image_url: publicURL,
-      caption: caption,
-      access_token: token,
-    };
-
-    const response = await axios.post(
-      `https://graph.facebook.com/v18.0/${pageId}/media`,
-      postData
-    );
-
-    creationID = response.data.id;
+    
+    const resp = await new Promise((resolve, reject) => {
+      const postData = {
+        image_url: publicURL,
+        caption: caption,
+        access_token: token,
+      };  
+      graph.post(
+         `${pageId}/media`,
+         postData,
+         (err, responseData) => {
+           if (err) {
+             console.error('Error in Graph API call:', err);
+             reject(err);
+           } else {
+             console.log('Graph Api Media Container Id Received Successfully');
+             resolve(responseData);
+           }
+         }
+       );
+     });
+   
+    creationID = resp.id;
+   
     console.log('Creation Id inside 1st Call', creationID);
-    console.log('Response:', response.data);
+    console.log('Response:', resp);
 
     // Respond to the client with success message or any other data as needed
     res
@@ -110,12 +121,7 @@ const uploadpost = async (req, res) => {
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 
-  // Add unhandledRejection event listener here
-  process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-    // Handle or log the unhandled rejection as needed
-  });
-  // Require the necessary module
+ 
 };
 
 const publishpost = async (req, res) => {
@@ -127,24 +133,28 @@ const publishpost = async (req, res) => {
     console.log('Token:', token); // Access the token value
     console.log('Creation Id Inside Publish Post 2nd Call', creationID);
 
+    const respublish = await new Promise((resolve, reject) => {
+      
     const postData = {
       creation_id: creationID,
       access_token: token,
     };
-
-    axios
-      .post(
-        `https://graph.facebook.com/v18.0/${pageId}/media_publish`,
-        postData
-      )
-      .then((response) => {
-        console.log('Response:', response.data);
-      })
-      .catch((error) => {
-        console.error('Error:', error.response.data);
-      });
-
-    console.log('PublishInstaPost function ran successfully');
+      graph.post(
+       `${pageId}/media_publish`,
+       postData,
+       (err, responseData) => {
+         if (err) {
+           console.error('Error in Graph API call:', err);
+           reject(err);
+         } else {
+           console.log('Graph Api completed Successfully');
+           resolve(responseData);
+         }
+       }
+     );
+   });
+   res.status(200).json({ success: true, data: respublish.data });
+    console.log('PublishInstaPost function ran successfully',respublish);
   } catch (error) {
     console.error('Error retrieving page info:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
@@ -155,45 +165,3 @@ const getPublicUrl = () => publicURL;
 
 module.exports = { publishpost, uploadpost, getPublicUrl };
 
-//Graph Calls
-//   `/${pageId}/media?image_url=${imageurl}&caption=${caption}&access_token=${token}`,
-
-//   async (err, userResp) => {
-//     if (err) {
-//       const token = getToken(); // Get the token value
-
-//       isLoggedIn = false; // Set the flag to false if there's an error
-//       return;
-//     }
-
-//     // Handle the response from the first API call
-//     console.log('User details:', userResp);
-//     creationID= userResp.data[0].id;
-//     console.log("----------------------")
-//     console.log(creationID);
-//      // Respond with the retrieved pageId
-//     res.status(200).json({ success: true, pageId: pageId });
-//     // Now make the second API call to get user's Facebook pages
-
-//   }
-// );
-
-// graph.post(
-//   `/${pageId}/media_publish?creation_id=${creationID}&access_token=${token}`,
-//   async (err, resp) => {
-//     if (err) {
-
-//                   console.error('Error:', err);
-
-//       isLoggedIn = false; // Set the flag to false if there's an error
-//       return;
-//     }
-
-//     // Send a success response if graph.post() completes successfully
-//     res.status(200).json({
-//       success: true,
-//       message: 'Post published successfully',
-//       responseData: resp, // You can send additional data if needed
-//     });
-//   }
-// );
