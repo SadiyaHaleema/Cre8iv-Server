@@ -19,7 +19,7 @@ let fbuser_id, fbuser_name;
 //const pageTokens = [];
 const instapageIds = [];
 const fbpageIds = [];
-const fbpagenames =[];
+const fbpagenames = [];
 
 const categories = [];
 const usenames = [];
@@ -58,7 +58,6 @@ const getFbToken = async (req, res) => {
       res.redirect(`https://localhost:3000/?stateloggedIn=${isLoggedIn}`);
     }
   );
-
 };
 
 const getUserFbPages = async (req, res) => {
@@ -70,7 +69,7 @@ const getUserFbPages = async (req, res) => {
 
   // Make the first API call to get user details
   graph.get(
-    `me?fields=name,id&access_token=${token}`,
+    `me?fields=name,id,email,picture&access_token=${token}`,
     async (err, userResp) => {
       if (err) {
         res.status(404).json({
@@ -100,7 +99,7 @@ const getUserFbPages = async (req, res) => {
 
           // Send the response back to the client
           // very important to send data to frontend
-          res.json({ isLoggedIn: true, data: resp.data });
+          res.json({ isLoggedIn: true, data: resp.data, user: userResp });
 
           no_Objects = resp.data.length;
           // Loop through each object in resp.data
@@ -132,9 +131,11 @@ const getUserFbPages = async (req, res) => {
               const newpageinfo = new pageinfo({
                 pageId: instapgId,
                 fbpageId: fbpgid,
-                fbpagename:fbpgname, 
+                fbpagename: fbpgname,
                 userId: userResp.id, // Assuming userResp contains user details
                 user_name: userResp.name, // Assuming userResp contains user details
+                user_picture: userResp.picture.data.url,
+                user_email: userResp.email, // Assuming userResp contains user details
                 category,
                 insta_username: insta_username,
                 biography,

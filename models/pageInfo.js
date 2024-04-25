@@ -3,9 +3,11 @@ const mongoose = require('mongoose');
 const pageinfoschema = new mongoose.Schema({
   userId: { type: String, required: true }, // User ID field
   pageId: { type: String, required: true, unique: true }, // Instagram ID field with unique constraint
-  fbpageId:String,
-  fbpagename:String,
+  fbpageId: String,
+  fbpagename: String,
   user_name: String,
+  user_picture: String,
+  user_email: String,
   category: String,
   insta_username: String,
   biography: String,
