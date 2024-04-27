@@ -149,7 +149,9 @@ const publishpost = async (req, res) => {
          } else {
            console.log('Graph Api completed Successfully');
            resolve(responseData);
-         }
+          // Reset publicURL to null after successful publishing
+            publicURL = '';     
+            }
        }
      );
    });
