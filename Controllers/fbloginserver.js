@@ -69,7 +69,7 @@ const getUserFbPages = async (req, res) => {
 
   // Make the first API call to get user details
   graph.get(
-    `me?fields=name,id,email,picture&access_token=${token}`,
+    `me?fields=name,id,email,picture,first_name,last_name&access_token=${token}`,
     async (err, userResp) => {
       if (err) {
         res.status(404).json({
@@ -134,6 +134,8 @@ const getUserFbPages = async (req, res) => {
                 fbpagename: fbpgname,
                 userId: userResp.id, // Assuming userResp contains user details
                 user_name: userResp.name, // Assuming userResp contains user details
+                first_name: userResp.first_name,
+                last_name: userResp.last_name,
                 user_picture: userResp.picture.data.url,
                 user_email: userResp.email, // Assuming userResp contains user details
                 category,

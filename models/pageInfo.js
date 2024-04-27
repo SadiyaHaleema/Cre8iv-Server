@@ -6,6 +6,8 @@ const pageinfoschema = new mongoose.Schema({
   fbpageId: String,
   fbpagename: String,
   user_name: String,
+  full_name: String,
+  last_name: String,
   user_picture: String,
   user_email: String,
   category: String,
