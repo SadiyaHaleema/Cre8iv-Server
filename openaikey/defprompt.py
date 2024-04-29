@@ -4,8 +4,30 @@ from pymongo import MongoClient
 from openai import OpenAI
 import json
 import sys
+import re
 openai_client = OpenAI()
 
+# Define the updated remove_unwanted_text function
+def remove_unwanted_text(text):
+     # Regular expression to match unwanted patterns
+    patterns_to_remove = [
+    r'\d+',                      # Match digits
+    r'[^#\.,\w\s]',              # Match non-alphanumeric characters except hashtags, full stops, and necessary commas
+    r'\b\w{1,2}\b',              # Match words with 1 or 2 characters
+    r'\b(?:a|an|the)\b'         # Match common stop words (optional)
+]
+
+    
+    # Combine all patterns into a single regular expression
+    combined_pattern = '|'.join(patterns_to_remove)
+    # Remove excessive whitespace while preserving spaces between words
+    # Apply the combined regular expression to remove unwanted text
+    cleaned_text = re.sub(combined_pattern, '', text)
+    
+    # Remove excessive whitespace while preserving spaces between words
+    cleaned_text = re.sub(r'\s+', ' ', cleaned_text)
+    
+    return cleaned_text.strip()  # Strip leading and trailing whitespace
 
 def captiongenerator(instaaccountusername):
     # Connect to MongoDB
@@ -42,13 +64,14 @@ def captiongenerator(instaaccountusername):
     
  
     generated_caption= response.choices[0].message.content.strip()
-  
+    # Remove unwanted text from the generated caption
+    filtered_response = remove_unwanted_text(generated_caption)
     # hardcode = "Unlock endless opportunities with GDSC - NUST! Join us for a glimpse into a world of innovative projects, corporate insights, and cutting-edge workshops. Your journey to success starts here. #GDSCNUST #GreatThingsToCome"
     #print(json.dumps(hardcode))
     
     
       
-    print(json.dumps(generated_caption))
+    print(json.dumps(filtered_response))
   
 if __name__ == "__main__":
    

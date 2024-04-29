@@ -4,7 +4,6 @@ let graph = require('fbgraph');
 const { getToken } = require('./fbloginserver');
 const { BlobServiceClient } = require('@azure/storage-blob');
 const fs = require('fs');
-const {fetchfbpgtoken} = require('./schedule_server');
 const connectionString =
   'DefaultEndpointsProtocol=https;AccountName=cre8ivimages;AccountKey=AaAE6uRME7B5KXL2FSxjCUTL9m2dMSKOwvcoEa/vyHuZc8cmGSGOxc35zJkfY9c++uRFMdIE3hcK+AStnMp+qg==;EndpointSuffix=core.windows.net';
 const containerName = 'cre8ivimages'; // Specify the name of your container
