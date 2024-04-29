@@ -25,9 +25,9 @@ const tryupload = async (req, res) => {
 
 
       const pageUsername = req.body.pageUsername;
+      console.log()
 
-
-      // Access pageUsername from form data
+   
 
 
       // Save the image buffer to a file
@@ -43,7 +43,7 @@ const tryupload = async (req, res) => {
         try {
           // Process the data and send the response inside the writeFile callback
           await processData(pageUsername);
-          const caption = await calldefpromptScript();
+          const caption = await calldefpromptScript(pageUsername);
           console.log('Caption:', caption);
 
 
@@ -70,9 +70,7 @@ const tryupload = async (req, res) => {
 async function processData(pageUsername) {
   const message = './images/image.jpeg';
   await callPythonScript(message, pageUsername);
-  //await calldefpromptScript();
-  // console.log("--------Caption---------",captionsaved);
-  // return captionsaved;
+  
 }
 
 
@@ -167,9 +165,9 @@ async function callPythonScript(message, pageUsername) {
 }
 
 
-async function calldefpromptScript() {
+async function calldefpromptScript(pageUsername) {
   return new Promise((resolve, reject) => {
-    const pythonProcess = spawn('python', ['./openaikey/defprompt.py'], {});
+    const pythonProcess = spawn('python', ['./openaikey/defprompt.py',pageUsername], {});
     let caption = '';
     pythonProcess.stdout.on('data', (data) => {
       caption += data.toString(); // Concatenate received data to the caption string

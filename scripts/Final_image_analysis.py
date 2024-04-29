@@ -230,9 +230,7 @@ def detect_obj(image_path):
     
 if __name__ == "__main__":
    
-    # Read the image data from the standard input as a string
-    #image_data = sys.stdin.read()
-    #image_data = './images/image.jpeg'
+
     image_data = sys.argv[1]
     obj_list = detect_obj(image_data)
     text_list = detect_text(image_data)
