@@ -80,7 +80,7 @@ const getUserFbPages = async (req, res) => {
       }
 
       // Handle the response from the first API call
-      console.log('User details:', userResp);
+      // console.log('User details:', userResp);
 
       // Now make the second API call to get user's Facebook pages
       graph.get(
@@ -99,7 +99,7 @@ const getUserFbPages = async (req, res) => {
 
           // Send the response back to the client
           // very important to send data to frontend
-          res.json({ isLoggedIn: true, data: resp.data, user: userResp });
+          res.json({ data: resp.data, user: userResp });
 
           no_Objects = resp.data.length;
           // Loop through each object in resp.data
@@ -114,6 +114,14 @@ const getUserFbPages = async (req, res) => {
             const insta_username = page.instagram_business_account.username;
             const biography = page.instagram_business_account.biography;
 
+             // Store values in arrays
+
+             instapageIds.push(instapgId);
+             fbpageIds.push(fbpgid);
+             fbpagenames.push(fbpgname);
+             categories.push(category);
+             usenames.push(insta_username);
+             biographies.push(biography);
             // Check if the pageinfo already exists in MongoDB
             //console.log("User Response",userResp.id)
             const pageInfoExists = await pageinfo.findOne({
@@ -156,17 +164,11 @@ const getUserFbPages = async (req, res) => {
               }
             }
 
-            // Store values in arrays
-
-            instapageIds.push(instapgId);
-            fbpageIds.push(fbpgid);
-            fbpagenames.push(fbpgname);
-            categories.push(category);
-            usenames.push(insta_username);
-            biographies.push(biography);
+           
           });
 
           console.log('---------------->>>> Instapageids:', instapageIds);
+          console.log("----------FBPageIDs----------:",fbpageIds);
         }
       );
     }
@@ -202,7 +204,7 @@ const getPgData = async (req, res) => {
 };
 
 async function processData(responses) {
-  console.log('Inside Process Data responses :', responses);
+  // console.log('Inside Process Data responses :', responses);
   try {
     for (const item of responses) {
       const dataArray = item.data.data;
@@ -236,7 +238,7 @@ async function processData(responses) {
 
           try {
             await newpost.save();
-            console.log('Caption saved to MongoDB:', newpost);
+            // console.log('Caption saved to MongoDB:', newpost);
           } catch (error) {
             console.error('Error saving Caption to MongoDB:', error.message);
           }
@@ -256,9 +258,7 @@ async function processData(responses) {
 function getGraphData(instapagId, token) {
   return new Promise((resolve, reject) => {
     let graph = require('fbgraph');
-    //Use Post Method
-    //`${instapagId}/media?fields=caption,media_url{"https://dejhdjejdijk"}`
-
+   
     graph.get(
       `${instapagId}/media?fields=username,caption,media_url,timestamp&access_token=${token}`,
       (err, resp) => {
