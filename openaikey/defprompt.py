@@ -45,8 +45,9 @@ def captiongenerator(instaaccountusername):
     prompt_msg += f"Our brand operates in the '{data['category']}' category, offering unique {data['keywords']}.\n\n"
     prompt_msg += f"Generate a captivating caption based on the content of the uploaded image:\n\nThe image includes the following objects: {', '.join(data['imgObj'])} and text: '{data['imgText']}'\n\n"
 
-    prompt_msg += "Generate a captivating caption that resonates with our audience and drives engagement.\n\n"
+    prompt_msg += f"Generate a captivating caption that resonates with our audience and drives engagement.\n\n"
     
+    prompt_msg+= f"Also add suitable emojis & hashtags if they are suitable with the caption.\n\n"
     # Define your prompt with placeholders
     # prompt_msg = f"Create a captivating caption for a brand in the '{data['category']}' category, known for {data['biography']}, presents an image with keywords: {data['keywords']}. Craft a compelling caption for an image which contains these objects:{data['imgObj']}  and this text list {data['imgText']} ."
   

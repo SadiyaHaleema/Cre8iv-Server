@@ -1,6 +1,3 @@
-//import {getFacebookLoginUrl} from '../Controllers/latestfbloginserver';
-
-//console.log('In routes');
 const router = require('express-promise-router')();
 module.exports = router;
 
