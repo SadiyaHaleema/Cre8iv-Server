@@ -61,9 +61,7 @@ const getFbToken = async (req, res) => {
 };
 
 const getUserFbPages = async (req, res) => {
-  // Set a flag to indicate that the user is logged in
-  let isLoggedIn = true;
-
+  
   // Require the necessary module
   let graph = require('fbgraph');
 
@@ -75,7 +73,6 @@ const getUserFbPages = async (req, res) => {
         res.status(404).json({
           message: err.message || 'Error in getting user details.',
         });
-        isLoggedIn = false; // Set the flag to false if there's an error
         return;
       }
 
@@ -90,7 +87,7 @@ const getUserFbPages = async (req, res) => {
             res.status(404).json({
               message: err.message || 'Error in getting user facebook pages.',
             });
-            isLoggedIn = false; // Set the flag to false if there's an error
+            
             return;
           }
 
