@@ -33,7 +33,7 @@ mongoose.connect('mongodb+srv://cre8iv:cre8iv#2023@cluster0.uxwdbzv.mongodb.net/
 const index = require('./Routes/index');
 app.use(express.json()); // Enable JSON parsing
 app.use(cors(corsOptions));
-
+app.options("", cors(corsOptions));
 //app.use(express.json({ extended: false, limit: '50mb' }));
 //app.use(express.urlencoded({ limit: '50mb', extended: false, parameterLimit: 50000 }));
 
