@@ -4,7 +4,6 @@ const { spawn } = require('child_process');
 const { pageinfo } = require('../models/pageInfo');
 // const {fbuserinfo} = require('../models/fbuserinfo')
 const post = require('../models/post');
-const mongoose = require('mongoose');
 const MongoClient = require('mongodb').MongoClient;
 // Constants
 const CLIENT_ID = '1303786660331996';
@@ -56,7 +55,7 @@ const getFbToken = async (req, res) => {
       //res.json(fbRes);
       console.log("Token",token);
       let isLoggedIn = true;
-      res.redirect(`https://localhost:3000/?stateloggedIn=${isLoggedIn}`);
+      res.redirect(`cre8iv-frontend.vercel.app/?stateloggedIn=${isLoggedIn}`);
     }
   );
 };
@@ -299,7 +298,7 @@ async function extractkeywords() {
           const pageKey = Object.keys(parsedOutput)[0];
 
           const client = await MongoClient.connect(
-            'mongodb://localhost:27017',
+            'mongodb+srv://cre8iv:cre8iv#2023@cluster0.uxwdbzv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
             {
               useNewUrlParser: true,
               useUnifiedTopology: true,

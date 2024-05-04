@@ -41,7 +41,7 @@ from pymongo import MongoClient
 # data = json.loads(dumps(posts))
 
 # Connect to MongoDB
-client = MongoClient('mongodb://localhost:27017/cre8iv')  # Replace 'your_mongo_db_connection_string' with your actual connection string
+client = MongoClient('mongodb+srv://cre8iv:cre8iv#2023@cluster0.uxwdbzv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')  # Replace 'your_mongo_db_connection_string' with your actual connection string
 db = client['cre8iv']  # Replace 'your_database_name' with your actual database name
 collection = db['posts']  # Replace 'posts' with your actual collection name
 

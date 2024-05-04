@@ -8,12 +8,12 @@ const app = express();
 app.use('/images', express.static('images'));
 const middlewares = require('./middlewares');
 const corsOptions = {
-  origin: 'https://localhost:3000',
+  origin: 'cre8iv-frontend.vercel.app',
   credentials: true,
   optionSuccessStatus: 200,
 };
 // MongoDB connection setup
-mongoose.connect('mongodb://localhost:27017/cre8iv', {
+mongoose.connect('mongodb+srv://cre8iv:cre8iv#2023@cluster0.uxwdbzv.mongodb.net/cre8iv?retryWrites=true&w=majority&appName=Cluster0', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })

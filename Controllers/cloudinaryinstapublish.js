@@ -39,7 +39,7 @@ const fetchinstafbpagetoken = async (req, res) => {
     const instaUsername = req.body.pageUsername;
 
     // Connect to MongoDB
-    const client = await MongoClient.connect('mongodb://localhost:27017', {
+    const client = await MongoClient.connect('mongodb+srv://cre8iv:cre8iv#2023@cluster0.uxwdbzv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
@@ -137,7 +137,7 @@ const uploadpost = async (req, res) => {
 
   try {
     // Connect to MongoDB
-    const client = await MongoClient.connect('mongodb://localhost:27017', {
+    const client = await MongoClient.connect('mongodb+srv://cre8iv:cre8iv#2023@cluster0.uxwdbzv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
