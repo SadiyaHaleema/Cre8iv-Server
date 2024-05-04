@@ -40,7 +40,7 @@ const fetchfbpagetoken = async (req, res) => {
       });
   
       // Access the database
-      const db = client.db('cre8iv'); // Replace 'your_database_name' with your actual database name
+      const db = client.db('cre8iv'); 
   
       // Access the collection
       const collection = db.collection('pageinfos');
