@@ -54,6 +54,7 @@ const getFbToken = async (req, res) => {
       token = fbRes.access_token;
       //fbRes.access_token = null;
       //res.json(fbRes);
+      console.log("Token",token);
       let isLoggedIn = true;
       res.redirect(`https://localhost:3000/?stateloggedIn=${isLoggedIn}`);
     }
@@ -76,9 +77,8 @@ const getUserFbPages = async (req, res) => {
         return;
       }
 
-      // Handle the response from the first API call
-      // console.log('User details:', userResp);
-
+     
+     
       // Now make the second API call to get user's Facebook pages
       graph.get(
         `me/accounts?fields=name,id,access_token,instagram_business_account{id,username,biography},category&access_token=${token}`,
@@ -92,7 +92,7 @@ const getUserFbPages = async (req, res) => {
           }
 
           // Handle the response from the second API call
-          console.log('User Facebook pages:', resp);
+          // console.log('User Facebook pages:', resp);
 
           // Send the response back to the client
           // very important to send data to frontend
@@ -128,9 +128,9 @@ const getUserFbPages = async (req, res) => {
             console.log('-------------User Response', userResp);
 
             if (pageInfoExists) {
-              console.log(
-                `pageinfo with pageId ${instapgId} already exists. Skipping.`
-              );
+              // console.log(
+              //   `pageinfo with pageId ${instapgId} already exists. Skipping.`
+              // );
             } else {
               // Save pageinfo to MongoDB
               const newpageinfo = new pageinfo({
@@ -152,7 +152,7 @@ const getUserFbPages = async (req, res) => {
 
               try {
                 await newpageinfo.save();
-                console.log('pageinfo saved to MongoDB:', newpageinfo);
+                // console.log('pageinfo saved to MongoDB:', newpageinfo);
               } catch (error) {
                 console.error(
                   'Error saving pageinfo to MongoDB:',
@@ -181,7 +181,7 @@ const getPgData = async (req, res) => {
 
       try {
         const response = await getGraphData(instapgId, token);
-        console.log('Data:response from graph Data ', response.data);
+        // console.log('Data:response from graph Data ', response.data);
         responses.push({ instapgId, category, biography, data: response });
       } catch (err) {
         console.log(`Error in fb getpgdata api for Page ID ${instapgId}:`, err);
@@ -190,7 +190,7 @@ const getPgData = async (req, res) => {
 
     // Send the accumulated responses as a single response
     res.json(responses);
-    console.log('Responses from graphapi:', responses);
+    // console.log('Responses from graphapi:', responses);
 
     // Call processData after all responses have been processed
     await processData(responses);
