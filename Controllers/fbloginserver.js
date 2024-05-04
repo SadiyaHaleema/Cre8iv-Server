@@ -10,7 +10,7 @@ const CLIENT_ID = '1303786660331996';
 //const CONFIG_ID = '810365901107808';
 const CONFIG_ID = '1341274536576744';
 const CLIENT_SECRET = '3d3274e3174916feafaee66fd84d4e95';
-const REDIRECT_URI = 'https://localhost:3001/fbtoken';
+const REDIRECT_URI = 'https://cre8iv-server.vercel.app/fbtoken';
 
 let token, no_Objects;
 let fbuser_id, fbuser_name;

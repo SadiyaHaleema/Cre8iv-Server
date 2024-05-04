@@ -14,5 +14,5 @@ const httpsServer = https.createServer({ key, cert }, app);
 
 // Listen on the specified port
 httpsServer.listen(port, () => {
-  console.log(`Server is running on https://localhost:${port}`);
+  console.log("Server is running on https://cre8iv-server.vercel.app");
 });
