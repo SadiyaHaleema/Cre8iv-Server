@@ -32,7 +32,7 @@ async function callchatbot_prompt(message) {
       ideas += data.toString(); // Concatenate received data to the ideas string
       console.log(`Generated Ideas: ${data}`);
       resolve(ideas);
-      //return data;
+    
     });
 
     pythonProcess.stderr.on('data', (data) => {
@@ -43,7 +43,7 @@ async function callchatbot_prompt(message) {
     pythonProcess.on('close', (code) => {
       console.log(`Python Script exited with code ${code}`);
 
-      // Parse script output (assuming it's in JSON format)
+      
     });
   });
 }
