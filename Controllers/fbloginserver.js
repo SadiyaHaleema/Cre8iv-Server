@@ -55,7 +55,7 @@ const getFbToken = async (req, res) => {
       //res.json(fbRes);
       console.log("Token",token);
       let isLoggedIn = true;
-      res.redirect(`cre8iv-frontend.vercel.app/?stateloggedIn=${isLoggedIn}`);
+      res.redirect(`https://cre8iv-frontend.vercel.app/?stateloggedIn=${isLoggedIn}`);
     }
   );
 };

@@ -8,7 +8,7 @@ const app = express();
 app.use('/images', express.static('images'));
 const middlewares = require('./middlewares');
 const corsOptions = {
-  origin: 'cre8iv-frontend.vercel.app',
+  origin: 'https://cre8iv-frontend.vercel.app',
   credentials: true,
   optionSuccessStatus: 200,
 };
