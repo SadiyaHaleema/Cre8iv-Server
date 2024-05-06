@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 const app = express();
 app.use(cors(
   {
-	origin: ["https://cre8iv-server-api.vercel.app/"],
+	origin: ["https://cre8iv-frontend-frontendapp.vercel.app/"],
 	methods: ["POST", "GET"],
 	credentials:true
 }
