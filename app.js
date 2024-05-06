@@ -4,6 +4,14 @@ const mongoose = require('mongoose');
 
 //console.log('IN APP>JS');
 const app = express();
+app.use(cors(
+  {
+	origin: ["https://cre8iv-server-api.vercel.app/"],
+	methods: ["POST", "GET"],
+	credentials:true
+}
+);
+app.use(express.json());
 // Serve static files from the 'images' directory
 app.use('/images', express.static('images'));
 const middlewares = require('./middlewares');
